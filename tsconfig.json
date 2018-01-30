@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "lib": ["es2015"],
+    "alwaysStrict": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "forceConsistentCasingInFileNames": true,
+    "target": "es5",
+    "experimentalDecorators": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "suppressExcessPropertyErrors": true,
+    "declaration": true
+  },
+  "include": ["index.ts"],
+  "exclude": ["node_modules"]
+}
