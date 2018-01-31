@@ -1,28 +1,28 @@
 {
-  "name": "raiblocks-cliet",
+  "name": "nano-client",
   "version": "0.0.1",
-  "description": "Send and receive raiblocks",
+  "description": "Send and receive nano",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "debug": "ts-node --inspect-brk=9229 --debug index.ts",
+    "debug": "ts-node --inspect-brk=9229 --debug scripts/test.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "tsc"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mikepaszkiewicz/raiblocks-client.git"
+    "url": "git+https://github.com/mikepaszkiewicz/nano-client.git"
   },
   "author": "Mike Paszkiewicz",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mikepaszkiewicz/raiblocks-client/issues"
+    "url": "https://github.com/mikepaszkiewicz/nano-client/issues"
   },
-  "homepage": "https://github.com/mikepaszkiewicz/raiblocks-client#readme",
+  "homepage": "https://github.com/mikepaszkiewicz/nano-client#readme",
   "dependencies": {
     "@types/node": "^9.4.0",
     "axios": "^0.16.2",
-    "habitat-health": "^1.0.3",
+    "dotenv": "^5.0.0",
     "moment": "^2.20.1",
     "typescript": "^2.4.0"
   },
