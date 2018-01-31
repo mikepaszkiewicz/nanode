@@ -6,7 +6,7 @@ interface APIDef {
   [action: string]: any
 }
 
-interface API {
+type API = {
   block_create: {
     body: {
       type: 'open' | 'send' | 'receive'
@@ -93,7 +93,7 @@ function createAPI<API extends APIDef = any>(baseURL: string, apiKey: string) {
 }
 
 export default class Nano {
-  api: any
+  api = createAPI<API>(null, null)
   origin_address?: string
   origin_key?: string
 
