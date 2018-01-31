@@ -2,7 +2,7 @@
 
 Dead simple, promise-based client for interacting and building services on top of the NANO network.
 
-Not hosting your own node? [Sign up for node access](https://www.raiblocks.club/node-api) and get your API key at raiblocks.club
+Not hosting your own node? [Sign up for node access and get your API key at raiblocks.club](https://www.raiblocks.club/node-api) 
 
 ## Usage
 
