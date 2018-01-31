@@ -127,8 +127,7 @@ export default class Nano {
       },
       async info(account: string) {
         return await api('account_info', {
-          account,
-          count: '1'
+          account
         })
       }
     }

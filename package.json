@@ -1,5 +1,5 @@
 {
-  "name": "nano-client",
+  "name": "nano-client-node",
   "version": "0.0.1",
   "description": "Send and receive nano",
   "main": "./dist/index.js",
