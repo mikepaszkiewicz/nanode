@@ -8,8 +8,9 @@ Not hosting your own node? [Sign up for node access](https://www.raiblocks.club/
 
 `npm install nano-client-node`
 
-Initiate the client with your API key and origin key / address.
-Not sure what your private key is? Call `nano.get_deterministic_key()` with the account seed to get all relevant account information
+Initiate the client with your API key and a valid RPC url. Optionally pass your address and private key to the constructor.
+
+Not sure what your private key is? Call `nano.get_deterministic_key()` with the account seed to get all relevant account information.
 
 ```typescript
 import Nano from 'nano-client-node'
