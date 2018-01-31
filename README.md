@@ -27,3 +27,7 @@ nano.send('0.1', process.env.RECIPIENT_WALLET).then((res) => {
     ...
 })
 ```
+
+## Todos
+  - Receive call
+  - Documentation on remaining calls
