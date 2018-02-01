@@ -344,20 +344,20 @@ export default class Nano {
     recipient_wallet_address: string, //if we aren't sending from account passed in on init
     //or are sending on behalf of someone else (weird use case)
     origin_private_key?: string,
-    origin_wallet_address?: string
+    origin_account_address?: string
   ) {
     const {log} = this
     try {
-      const origin_wallet = this.origin_address || origin_wallet_address
+      const origin_wallet = this.origin_address || origin_account_address
       if (!origin_wallet) {
         throw new Error(
-          'Must pass origin_wallet_address in either send or constructor'
+          'Must pass origin_account_address in either send or constructor'
         )
       }
       const private_key = this.origin_key || origin_private_key
       if (!private_key) {
         throw new Error(
-          'Must pass origin_wallet_address in either send or constructor'
+          'Must pass origin_account_address in either send or constructor'
         )
       }
 
