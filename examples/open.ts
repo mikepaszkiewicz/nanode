@@ -1,6 +1,6 @@
 import Nano from './init'
 
-export async function open() {
+export default async function open() {
   try {
     //create a new key
     const target = await Nano.key.create()
@@ -18,10 +18,8 @@ export async function open() {
       target.public
     )
 
-    console.log(result)
+    return {result, target}
   } catch (err) {
     throw new Error(err.message)
   }
 }
-
-open()

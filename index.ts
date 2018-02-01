@@ -143,7 +143,14 @@ type OpenBlock = {
   source: string
   previous?: string
   representative: string
-  work?: string
+  work: string
+}
+
+type ChangeBlock = {
+  previous: string
+  key: string
+  work: string
+  representative: string
 }
 
 type AccountInfo = {
@@ -231,7 +238,9 @@ export default class Nano {
           })
       },
       async info(account: string) {
-        return await rpc('account_info', {account})
+        return await rpc('account_info', {
+          account
+        })
           .then(account => {
             log(`(ACCOUNT) balance: ${account.balance}`)
             log(`(ACCOUNT) latest hash: ${account.frontier}`)
@@ -260,7 +269,9 @@ export default class Nano {
         if (!amount) {
           throw new Error('Must pass amount to conversion call')
         }
-        return await rpc('krai_to_raw', {amount: amount.toString()})
+        return await rpc('krai_to_raw', {
+          amount: amount.toString()
+        })
           .then(res => {
             log(`(CONVERT) ${amount} krai to ${res.amount} raw`)
             return res
@@ -276,8 +287,10 @@ export default class Nano {
 
     return {
       async open(block: OpenBlock) {
-        debugger
-        return await rpc('block_create', {type: 'open', ...block})
+        return await rpc('block_create', {
+          type: 'open',
+          ...block
+        })
           .then(res => {
             log(`(BLOCK) Opening ${block.key}`)
             return res
@@ -286,8 +299,24 @@ export default class Nano {
             throw new Error(`block.open failed: ${err.message}`)
           })
       },
+      async change(block: ChangeBlock) {
+        return await rpc('block_create', {
+          type: 'change',
+          ...block
+        })
+          .then(res => {
+            log(`(BLOCK) Changing ${block.key}`)
+            return res
+          })
+          .catch((err: Error) => {
+            throw new Error(`block.change failed: ${err.message}`)
+          })
+      },
       async send(block: SendBlock) {
-        return await rpc('block_create', {type: 'send', ...block})
+        return await rpc('block_create', {
+          type: 'send',
+          ...block
+        })
           .then(res => {
             log(
               `(BLOCK) Sending ${block.amount} from ${block.account} to ${
@@ -301,7 +330,9 @@ export default class Nano {
           })
       },
       async publish(block: string) {
-        return await rpc('process', {block: block})
+        return await rpc('process', {
+          block: block
+        })
           .then(res => {
             log(`(BLOCK) Published: ${res.hash}`)
             return res
@@ -311,7 +342,10 @@ export default class Nano {
           })
       },
       async receive(block: ReceiveBlock) {
-        return await rpc('block_create', {type: 'receive', ...block})
+        return await rpc('block_create', {
+          type: 'receive',
+          ...block
+        })
           .then(res => {
             log(`Received block ${block.source}`)
             return res
@@ -378,8 +412,7 @@ export default class Nano {
   }
   async send(
     amount: string,
-    recipient_wallet_address: string, //if we aren't sending from account passed in on init
-    //or are sending on behalf of someone else (weird use case)
+    recipient_wallet_address: string, //or are sending on behalf of someone else (weird use case) //if we aren't sending from account passed in on init
     origin_private_key?: string,
     origin_account_address?: string
   ) {
@@ -422,10 +455,11 @@ export default class Nano {
     }
   }
   async receive(
-    send_block_hash: string, //if we aren't receiving to account passed in on init...
+    send_block_hash: string,
     recipient_private_key?: string,
     recipient_wallet_address?: string
   ) {
+    //if we aren't receiving to account passed in on init...
     const {log} = this
     try {
       const receiving_wallet = this.origin_address || recipient_wallet_address
@@ -485,6 +519,31 @@ export default class Nano {
         source: send_block_hash,
         work: work.work,
         representative
+      })
+
+      const result = await this.block.publish(block.block)
+      log(`Opened NANO block ${result.hash} with rep. ${representative}!`)
+      return result
+    } catch (err) {
+      throw new Error(`open failed: ${err.message}`)
+    }
+  }
+  async change(
+    previous: string,
+    representative: string,
+    target_private_key?: string,
+    target_public_key?: string
+  ) {
+    const {log} = this
+
+    try {
+      const work = await this.work.generate(previous)
+
+      const block = await this.block.change({
+        previous,
+        representative,
+        work: work.work,
+        key: target_private_key
       })
 
       const result = await this.block.publish(block.block)
