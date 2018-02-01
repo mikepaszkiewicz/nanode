@@ -1,0 +1,27 @@
+import Nano from './init'
+
+export async function open() {
+  try {
+    //create a new key
+    const target = await Nano.key.create()
+
+    console.log(`Initializing account ${target.account} with funds..`)
+
+    //send new account init funds from our walet
+    const send = await Nano.send('0.01', target.account)
+
+    //open block with send's hash
+    const result = await Nano.open(
+      send.hash,
+      process.env.DEFAULT_REP,
+      target.private,
+      target.public
+    )
+
+    console.log(result)
+  } catch (err) {
+    throw new Error(err.message)
+  }
+}
+
+open()

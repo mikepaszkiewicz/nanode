@@ -7,16 +7,17 @@ interface APIDef {
 type API = {
   block_create: {
     body: {
-      type: 'open' | 'send' | 'receive'
+      type: 'open' | 'send' | 'receive' | 'change'
       key: string //open, send, receive: PRIVATE KEY for XRB wallet to 'sign' the block
+      previous?: string
+      work: string
       account?: string //open, send: The 'target' wallet which is being opened or debited
       representative?: string //open: A 'representative' wallet to use your balance as vote weight
       source?: string //open, receive: Always refers to the most recent block hash on YOUR account
+      signature?: string
       destination?: string //send: destination xrb wallet
       balance?: string //send: current balance of debited address
       amount?: string
-      previous: string
-      work: string
     }
     response: {
       hash: string
@@ -73,6 +74,10 @@ type API = {
       index: string
     }
     response: any
+  }
+  key_create: {
+    body: any
+    response: AccountInfo
   }
   krai_to_raw: {
     body: {
@@ -131,6 +136,20 @@ type ReceiveBlock = {
   previous: string
   work: string
   source: string
+}
+
+type OpenBlock = {
+  key: string
+  source: string
+  previous?: string
+  representative: string
+  work?: string
+}
+
+type AccountInfo = {
+  public: string
+  private: string
+  account: string
 }
 function createAPI<API extends APIDef = any>(baseURL: string, apiKey: string) {
   const rpc = axios.create({
@@ -256,12 +275,20 @@ export default class Nano {
     const {rpc, log} = this
 
     return {
+      async open(block: OpenBlock) {
+        debugger
+        return await rpc('block_create', {type: 'open', ...block})
+          .then(res => {
+            log(`(BLOCK) Opening ${block.key}`)
+            return res
+          })
+          .catch((err: Error) => {
+            throw new Error(`block.open failed: ${err.message}`)
+          })
+      },
       async send(block: SendBlock) {
-        return await rpc('block_create', {
-          type: 'send',
-          ...block
-        })
-          .then((res: any) => {
+        return await rpc('block_create', {type: 'send', ...block})
+          .then(res => {
             log(
               `(BLOCK) Sending ${block.amount} from ${block.account} to ${
                 block.destination
@@ -274,10 +301,8 @@ export default class Nano {
           })
       },
       async publish(block: string) {
-        return await rpc('process', {
-          block: block
-        })
-          .then((res: any) => {
+        return await rpc('process', {block: block})
+          .then(res => {
             log(`(BLOCK) Published: ${res.hash}`)
             return res
           })
@@ -286,16 +311,28 @@ export default class Nano {
           })
       },
       async receive(block: ReceiveBlock) {
-        return await rpc('block_create', {
-          type: 'receive',
-          ...block
-        })
-          .then((res: any) => {
+        return await rpc('block_create', {type: 'receive', ...block})
+          .then(res => {
             log(`Received block ${block.source}`)
             return res
           })
           .catch((err: Error) => {
             throw new Error(`block.receive failed: ${err.message}`)
+          })
+      }
+    }
+  }
+  get key() {
+    const {rpc, log} = this
+    return {
+      async create() {
+        return await rpc('key_create', {})
+          .then(res => {
+            log(`Created key ${res}`)
+            return res
+          })
+          .catch(err => {
+            throw new Error(`key.create failed: ${err.message}`)
           })
       }
     }
@@ -424,6 +461,37 @@ export default class Nano {
       return result
     } catch (err) {
       throw new Error(`Nano.send failed: ${err.message}`)
+    }
+  }
+  async open(
+    send_block_hash: string,
+    representative: string,
+    target_private_key?: string,
+    target_public_key?: string
+  ) {
+    const {log} = this
+
+    const private_key = this.origin_key || target_private_key
+    if (!private_key) {
+      throw new Error('Must pass origin_key in either open call or constructor')
+    }
+
+    try {
+      const work = await this.work.generate(target_public_key)
+
+      const block = await this.block.open({
+        previous: target_public_key,
+        key: target_private_key,
+        source: send_block_hash,
+        work: work.work,
+        representative
+      })
+
+      const result = await this.block.publish(block.block)
+      log(`Opened NANO block ${result.hash} with rep. ${representative}!`)
+      return result
+    } catch (err) {
+      throw new Error(`open failed: ${err.message}`)
     }
   }
 }
