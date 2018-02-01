@@ -12,14 +12,24 @@ type API = {
       account?: string //open, send: The 'target' wallet which is being opened or debited
       representative?: string //open: A 'representative' wallet to use your balance as vote weight
       source?: string //open, receive: Always refers to the most recent block hash on YOUR account
-      destination: string //send: destination xrb wallet
-      balance: string //send: current balance of debited address
-      amount: string
+      destination?: string //send: destination xrb wallet
+      balance?: string //send: current balance of debited address
+      amount?: string
       previous: string
       work: string
     }
     response: {
       hash: string
+      block: string
+    }
+  }
+  receive: {
+    body: {
+      wallet: string
+      account: string
+      block: string
+    }
+    response: {
       block: string
     }
   }
@@ -49,6 +59,12 @@ type API = {
       balance: string
       modified_timestamp: string
       block_count: string
+    }
+  }
+  accounts_pending: {
+    body: {
+      accounts: string[]
+      count?: string
     }
   }
   deterministic_key: {
@@ -109,6 +125,13 @@ type SendBlock = {
   work: string
 }
 
+type ReceiveBlock = {
+  key: string
+  account: string
+  previous: string
+  work: string
+  source: string
+}
 function createAPI<API extends APIDef = any>(baseURL: string, apiKey: string) {
   const rpc = axios.create({
     baseURL,
@@ -137,6 +160,7 @@ function createAPI<API extends APIDef = any>(baseURL: string, apiKey: string) {
 
 export default class Nano {
   rpc = createAPI<API>(null, null)
+  debug: boolean
   origin_address?: string
   origin_key?: string
 
@@ -145,6 +169,7 @@ export default class Nano {
     url: string
     origin_address?: string
     origin_key?: string
+    debug?: boolean
   }) {
     if (!options.api_key) {
       throw new Error('Must pass api_key to constructor')
@@ -152,39 +177,83 @@ export default class Nano {
     if (!options.url) {
       throw new Error('Must past RPC URL to constructor')
     }
+    this.debug = !!options.debug
     this.rpc = createAPI<API>(options.url, options.api_key)
     this.origin_address = options.origin_address
     this.origin_key = options.origin_key
   }
+  log(message: string) {
+    //can't pass this.debug
+    if (true) {
+      console.log(message)
+    }
+  }
   async get_deterministic_key(seed: string) {
-    return this.rpc('deterministic_key', {seed, index: '0'})
+    return this.rpc('deterministic_key', {
+      seed,
+      index: '0'
+    })
+      .then(res => res)
+      .catch(err => {
+        throw new Error(`get_dertiministic_key failed: ${err.message}`)
+      })
   }
   get account() {
-    const {rpc} = this
+    const {rpc, log} = this
     return {
-      async history(account: string) {
+      async history(account: string, count?: string) {
         return await rpc('account_history', {
           account,
-          count: '1'
+          count: count || '1'
         })
+          .then(res => res)
+          .catch(err => {
+            throw new Error(`account.pending failed: ${err.message}`)
+          })
       },
       async info(account: string) {
-        return await rpc('account_info', {
-          account
+        return await rpc('account_info', {account})
+          .then(account => {
+            log(`(ACCOUNT) balance: ${account.balance}`)
+            log(`(ACCOUNT) latest hash: ${account.frontier}`)
+            return account
+          })
+          .catch(err => {
+            throw new Error(`account.info failed: ${err.message}`)
+          })
+      },
+      async pending(accounts: string[], count?: string) {
+        return await rpc('accounts_pending', {
+          accounts,
+          count: count || '1'
         })
+          .then(res => res)
+          .catch(err => {
+            throw new Error(`account.pending failed: ${err.message}`)
+          })
       }
     }
   }
   get convert() {
-    const {rpc} = this
+    const {rpc, log} = this
     return {
       async krai_to_raw(amount: string | number) {
-        return await rpc('krai_to_raw', {amount: amount})
+        if (!amount) {
+          throw new Error('Must pass amount to conversion call')
+        }
+        return await rpc('krai_to_raw', {amount: amount.toString()})
+          .then(res => {
+            log(`(CONVERT) ${amount} krai to ${res.amount} raw`)
+            return res
+          })
+          .catch(err => {
+            throw new Error(`convert.krai_to_rai failed: ${err.message}`)
+          })
       }
     }
   }
   get block() {
-    const {rpc} = this
+    const {rpc, log} = this
 
     return {
       async send(block: SendBlock) {
@@ -193,11 +262,15 @@ export default class Nano {
           ...block
         })
           .then((res: any) => {
-            console.log(res)
+            log(
+              `(BLOCK) Sending ${block.amount} from ${block.account} to ${
+                block.destination
+              }`
+            )
             return res
           })
-          .catch((err: any) => {
-            debugger
+          .catch((err: Error) => {
+            throw new Error(`block.send failed: ${err.message}`)
           })
       },
       async publish(block: string) {
@@ -205,35 +278,75 @@ export default class Nano {
           block: block
         })
           .then((res: any) => {
+            log(`(BLOCK) Published: ${res.hash}`)
             return res
           })
-          .catch((err: any) => {
-            debugger
+          .catch((err: Error) => {
+            throw new Error(`block.publish failed: ${err.message}`)
+          })
+      },
+      async receive(block: ReceiveBlock) {
+        return await rpc('block_create', {
+          type: 'receive',
+          ...block
+        })
+          .then((res: any) => {
+            log(`Received block ${block.source}`)
+            return res
+          })
+          .catch((err: Error) => {
+            throw new Error(`block.receive failed: ${err.message}`)
           })
       }
     }
   }
   get work() {
-    const {rpc} = this
+    const {rpc, log} = this
 
     return {
       async generate(hash: string) {
-        return rpc('work_generate', {hash})
+        return await rpc('work_generate', {hash})
+          .then(result => {
+            log(`(WORK) generated PoW: ${result.work}`)
+            return result
+          })
+          .catch(err => {
+            throw new Error(`work.generate failed: ${err.message}`)
+          })
       },
       async cancel(hash: string) {
-        return rpc('work_cancel', {hash})
+        return await rpc('work_cancel', {hash})
+          .then(result => {
+            log(`(WORK) cancelled PoW for ${hash}`)
+            return result
+          })
+          .catch(err => {
+            throw new Error(`work.cancel failed: ${err.message}`)
+          })
       },
       async get(wallet: string, account: string) {
-        return rpc('work_get', {wallet, account})
+        return await rpc('work_get', {
+          wallet,
+          account
+        })
+          .then(result => {
+            log(`(WORK) retrieved PoW: ${result.work}`)
+            return result
+          })
+          .catch(err => {
+            throw new Error(`work.get failed: ${err.message}`)
+          })
       }
     }
   }
   async send(
     amount: string,
-    receipient_wallet_address: string,
+    recipient_wallet_address: string, //if we aren't sending from account passed in on init
+    //or are sending on behalf of someone else (weird use case)
     origin_private_key?: string,
     origin_wallet_address?: string
   ) {
+    const {log} = this
     try {
       const origin_wallet = this.origin_address || origin_wallet_address
       if (!origin_wallet) {
@@ -249,32 +362,68 @@ export default class Nano {
       }
 
       const account = await this.account.info(origin_wallet)
-      console.log('Step 1 (balance): ', account.balance)
-      console.log('Step 1 (latest hash): ', account.frontier)
 
       const work = await this.work.generate(account.frontier)
-      console.log('Step 2 (generated PoW): ', work.work)
 
       const rai_to_send = await this.convert.krai_to_raw(+amount * 1000)
 
-      const newBlock = {
+      const block = await this.block.send({
         key: private_key,
         account: origin_wallet,
-        destination: receipient_wallet_address,
+        destination: recipient_wallet_address,
         balance: account.balance,
         amount: rai_to_send.amount,
         previous: account.frontier,
         work: work.work
-      }
-
-      const block = await this.block.send(newBlock)
-      console.log('Step 3 (created block): ', block.hash)
+      })
 
       const result = await this.block.publish(block.block)
-      console.log('Step 4 (Publish block to network): ', result)
+      log(`Sent ${account.balance} NANO to ${recipient_wallet_address}!`)
       return result
     } catch (err) {
-      throw new Error(err.message)
+      throw new Error(`Nano.send failed: ${err.message}`)
+    }
+  }
+  async receive(
+    send_block_hash: string, //if we aren't receiving to account passed in on init...
+    recipient_private_key?: string,
+    recipient_wallet_address?: string
+  ) {
+    const {log} = this
+    try {
+      const receiving_wallet = this.origin_address || recipient_wallet_address
+      if (!receiving_wallet) {
+        throw new Error(
+          'Must pass recipient_wallet_address in either receive call or constructor'
+        )
+      }
+      const private_key = this.origin_key || recipient_private_key
+      if (!private_key) {
+        throw new Error(
+          'Must pass origin_key in either receive call or constructor'
+        )
+      }
+
+      const account = await this.account.info(receiving_wallet)
+
+      const work = await this.work.generate(account.frontier)
+
+      const block = await this.block.receive({
+        key: private_key,
+        account: receiving_wallet,
+        previous: account.frontier,
+        work: work.work,
+        source: send_block_hash
+      })
+      const result = await this.block.publish(block.block)
+      log(
+        `Received ${
+          account.balance
+        } NANO block ${send_block_hash} to wallet ${receiving_wallet}!`
+      )
+      return result
+    } catch (err) {
+      throw new Error(`Nano.send failed: ${err.message}`)
     }
   }
 }
