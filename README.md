@@ -5,8 +5,8 @@ Dead simple, promise-based client for interacting and building services on top o
 If you've worked with NANO before, you probably have experienced it's learning curve. The community is amazingly helpful and growing fast,
 but the documentation and guides to working with it currently leave a lot to be desired.
 
-This library is designed to get anyone, even a total beginner, up and running building services on NANO in just a few minutes. At it's core,
-this package is a wrapper around the official [RPC protocol](https://github.com/nanocurrency/raiblocks/wiki/RPC-protocol) that does a few things
+**This library is designed to get anyone, even a total beginner, up and running building services on NANO in just a few minutes.** At it's core,
+this package is a wrapper around the official [RPC protocol](https://github.com/nanocurrency/raiblocks/wiki/RPC-protocol) that does a few things:
 
 1. eliminates some of the idiosyncracies and quirks with the RPC API,
 2. exposes some top-level methods like `Nano.send()` and `Nano.recieve()`, so you don't have to know about creating, signing, publishing, etc.
@@ -74,20 +74,25 @@ Sending and receiving are simple one liners. For receive, we have to pass in the
 //examples/send.ts, examples/receive.ts
 import Nano from './init'
 
-const hash = await Nano.send('0.01', process.env.RECIPIENT_WALLET)
+const wallet_addr =
+  'xrb_3hk1e77fbkr67fwzswc31so7zi76g7poek9fwu1jhqxrn3r9wiohwt5hi4p1'
+
+const hash = await Nano.send('0.01', wallet_addr)
 
 return await Nano.receive(
   hash,
   process.env.RECIPIENT_WALLET_PRIVATE_KEY,
-  process.env.RECIPIENT_WALLET
+  wallet_addr
 )
 ```
 
 ## Full list of methods
 
+If you aren't sure about some of the arguments, they're available as types in your editor, or in the official RPC guide. Full TypeDoc documentation is on the way!
+
 ### Top-level calls
 
-These methods should technically be the only ones you need if you only need to send and recieve NANO, as described in the examples:
+if you only need to send and recieve NANO, **these methods should technically be the only ones you need**, per the examples above:
 
 * `Nano.open()`
 * `Nano.send()`
@@ -96,7 +101,7 @@ These methods should technically be the only ones you need if you only need to s
 
 ### Account
 
-Account methods take a single account string or array of accounts:
+Account methods take a single account string or in some cases, an array of accounts.
 
 * `Nano.account.get()`
 * `Nano.account.balance()`
@@ -115,16 +120,16 @@ Account methods take a single account string or array of accounts:
 
 Block methods either require a block hash as a single argument, or a stringified block:
 
-* `Nano.block.account()`
-* `Nano.block.count()`
-* `Nano.block.chain()`
-* `Nano.block.change()`
-* `Nano.block.history()`
-* `Nano.block.open()`
-* `Nano.block.pending()`
-* `Nano.block.publish()`
-* `Nano.block.receive()`
-* `Nano.block.send()`
+* `Nano.block.account(block_hash)`
+* `Nano.block.count(block_hash)`
+* `Nano.block.chain(block_hash)`
+* `Nano.block.history(block_hash)`
+* `Nano.block.pending(block_hash)`
+* `Nano.block.change(block_string)`
+* `Nano.block.open(block_string)`
+* `Nano.block.publish(block_string)`
+* `Nano.block.receive(block_string)`
+* `Nano.block.send(block_string)`
 
 ### Blocks
 
@@ -136,16 +141,18 @@ This utility method allows a block hash or array of block hashes -
 
 The convert method allows you to convert krai, mrai, and rai to and from their raw values. Both take an amount and denomination.
 
-* `Nano.convert.toRaw()`
-* `Nano.convert.fromRaw()`
-  ### Work
+* `Nano.convert.toRaw(22, 'mrai')`
+* `Nano.convert.fromRaw(22, 'mrai')`
+
+### Work
 
 Exposes work methods to perform on hashes
 
-* `Nano.work.generate()`
-* `Nano.work.cancel()`
-* `Nano.work.get()`
+* `Nano.work.generate(block_hash)`
+* `Nano.work.cancel(block_hash)`
+* `Nano.work.get(wallet, account)`
 
 ## Todos
 
 * Use BigNumber, etc. to allow passing numbers
+* TypeDoc site + add remaining methods
