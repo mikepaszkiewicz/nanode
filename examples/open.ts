@@ -8,11 +8,11 @@ export default async function open() {
     console.log(`Initializing account ${target.account} with funds..`)
 
     //send new account init funds from our walet
-    const send = await Nano.send('0.01', target.account)
+    const hash = await Nano.send('0.01', target.account)
 
     //open block with send's hash
     const result = await Nano.open(
-      send.hash,
+      hash,
       process.env.DEFAULT_REP,
       target.private,
       target.public
