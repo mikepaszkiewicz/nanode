@@ -601,7 +601,7 @@ export default class Nano {
 
       const result = await this.block.publish(block.block)
       log(`Sent ${account.balance} NANO to ${recipient_wallet_address}!`)
-      return result
+      return result.hash
     } catch (err) {
       throw new Error(`Nano.send failed: ${err.message}`)
     }
