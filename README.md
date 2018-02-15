@@ -87,14 +87,16 @@ return await Nano.receive(
 
 ### Top-level calls
 
-    - ```Nano.open```
-    - ```Nano.send```
-    - ```Nano.receive```
-    - ```Nano.change```
+These methods should technically be the only ones you need if you only need to send and recieve NANO, as described in the examples:
+
+* `Nano.open()`
+* `Nano.send()`
+* `Nano.receive()`
+* `Nano.change()`
 
 ### Account
 
-All of these methods take a single account string or array of accounts:
+Account methods take a single account string or array of accounts:
 
 * `Nano.account.get()`
 * `Nano.account.balance()`
@@ -128,7 +130,21 @@ Block methods either require a block hash as a single argument, or a stringified
 
 This utility method allows a block hash or array of block hashes -
 
-    - ```Nano.blocks.find()```
+* `Nano.blocks.find()`
+
+### Convert
+
+The convert method allows you to convert krai, mrai, and rai to and from their raw values. Both take an amount and denomination.
+
+* `Nano.convert.toRaw()`
+* `Nano.convert.fromRaw()`
+  ### Work
+
+Exposes work methods to perform on hashes
+
+* `Nano.work.generate()`
+* `Nano.work.cancel()`
+* `Nano.work.get()`
 
 ## Todos
 
