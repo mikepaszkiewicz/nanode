@@ -155,6 +155,7 @@ Exposes work methods to perform on hashes
 ## Todos
 
 * Use BigNumber, etc. to allow passing numbers
+* Expose raw RPC method + types
 * TypeDoc site + add remaining method documentation
 * Better argument checking / error handling
 * Tests!
