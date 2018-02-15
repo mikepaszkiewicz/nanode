@@ -1,7 +1,7 @@
 {
-  "name": "nano-client-node",
-  "version": "0.0.2",
-  "description": "Send and receive nano",
+  "name": "nanode",
+  "version": "1.0.0",
+  "description": "A simple client for interacting with the NANO network",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mikepaszkiewicz/nano-client.git"
+    "url": "git+https://github.com/mikepaszkiewicz/nanode.git"
   },
   "author": "Mike Paszkiewicz",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mikepaszkiewicz/nano-client/issues"
+    "url": "https://github.com/mikepaszkiewicz/nanode/issues"
   },
-  "homepage": "https://github.com/mikepaszkiewicz/nano-client#readme",
+  "homepage": "https://github.com/mikepaszkiewicz/nanode#readme",
   "dependencies": {
     "@types/node": "^9.4.0",
     "axios": "^0.16.2",
