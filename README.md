@@ -8,7 +8,7 @@ but the documentation and guides to working with it currently leave a lot to be 
 **This library is designed to get anyone, even a total beginner, up and running building services on NANO in just a few minutes.** At it's core,
 this package is a wrapper around the official [RPC protocol](https://github.com/nanocurrency/raiblocks/wiki/RPC-protocol) that does a few things:
 
-1. eliminates some of the idiosyncracies and quirks with the RPC API,
+1. abstracts away some of the idiosyncracies and quirks with the RPC API,
 2. exposes some top-level methods like `Nano.send()` and `Nano.recieve()`, so you don't have to know about creating, signing, publishing, etc.
 
 Want to build with NANO, but not running a full node? [Sign up for node access and get your API key at nanode.co](https://nanode.co/node-api)
