@@ -5,6 +5,172 @@ interface APIDef {
 }
 
 type API = {
+  account_balance: {
+    body: {
+      account: string
+    }
+    response: {
+      balance: string
+      pending: string
+    }
+  }
+
+  account_block_count: {
+    body: {
+      account: string
+    }
+    response: {
+      block_count: string
+    }
+  }
+
+  account_get: {
+    body: {
+      key: string
+    }
+    response: {
+      account: string
+    }
+  }
+
+  account_history: {
+    body: {
+      account: string //target wallet
+      count?: string //return limit
+    }
+    response: any
+  }
+
+  account_info: {
+    body: {
+      account: string //target wallet
+    }
+    response: {
+      frontier: string
+      open_block: string
+      representative_block: string
+      balance: string
+      modified_timestamp: string
+      block_count: string
+    }
+  }
+
+  account_key: {
+    body: {
+      account: string
+    }
+    response: {
+      key: string
+    }
+  }
+
+  account_representative: {
+    body: {
+      account: string
+    }
+    response: {
+      representative: string
+    }
+  }
+
+  account_weight: {
+    body: {
+      account: string
+    }
+    response: {
+      weight: string
+    }
+  }
+
+  accounts_balances: {
+    body: {
+      accounts: string[]
+    }
+    response: {
+      [account: string]: {
+        balance: string
+        pending: string
+      }
+    }
+  }
+
+  accounts_frontiers: {
+    body: {
+      accounts: string[]
+    }
+    response: {
+      frontiers: {
+        [account: string]: string
+      }
+    }
+  }
+
+  accounts_pending: {
+    body: {
+      accounts: string[]
+      count?: string
+    }
+    response: {
+      blocks: {
+        [account: string]: string
+      }
+    }
+  }
+
+  available_supply: {
+    body: {}
+    response: {
+      available: string
+    }
+  }
+
+  block: {
+    body: {
+      hash: string
+    }
+    response: {
+      contents: GetBlock
+    }
+  }
+
+  blocks: {
+    body: {
+      hashes: string[]
+    }
+    response: {
+      blocks: {
+        [account: string]: GetBlock
+      }
+    }
+  }
+
+  block_account: {
+    body: {
+      hash: string
+    }
+    response: {
+      account: string
+    }
+  }
+
+  block_count: {
+    body: {}
+    response: {
+      count: string
+      unchecked: string
+    }
+  }
+
+  block_count_type: {
+    body: {}
+    response: {
+      send: string
+      receive: string
+      open: string
+      change: string
+    }
+  }
+
   block_create: {
     body: {
       type: 'open' | 'send' | 'receive' | 'change'
@@ -24,66 +190,7 @@ type API = {
       block: string
     }
   }
-  receive: {
-    body: {
-      wallet: string
-      account: string
-      block: string
-    }
-    response: {
-      block: string
-    }
-  }
-  process: {
-    body: {
-      block: string
-    }
-    response: {
-      hash: string
-    }
-  }
-  block: {
-    body: {
-      hash: string
-    }
-    response: {
-      contents: GetBlock
-    }
-  }
-  block_account: {
-    body: {
-      hash: string
-    }
-    response: {
-      account: string
-    }
-  }
-  block_count: {
-    body: {}
-    response: {
-      count: string
-      unchecked: string
-    }
-  }
-  block_count_type: {
-    body: {}
-    response: {
-      send: string
-      receive: string
-      open: string
-      change: string
-    }
-  }
-  blocks: {
-    body: {
-      hashes: string[]
-    }
-    response: {
-      blocks: {
-        [account: string]: GetBlock
-      }
-    }
-  }
+
   blocks_info: {
     body: {
       hashes: string[]
@@ -98,136 +205,14 @@ type API = {
       }
     }
   }
+
   chain: {
     body: {
       block: string
       count: string
     }
   }
-  account_balance: {
-    body: {
-      account: string
-    }
-    response: {
-      balance: string
-      pending: string
-    }
-  }
-  account_block_count: {
-    body: {
-      account: string
-    }
-    response: {
-      block_count: string
-    }
-  }
-  account_get: {
-    body: {
-      key: string
-    }
-    response: {
-      account: string
-    }
-  }
-  account_history: {
-    body: {
-      account: string //target wallet
-      count?: string //return limit
-    }
-    response: any
-  }
-  account_info: {
-    body: {
-      account: string //target wallet
-    }
-    response: {
-      frontier: string
-      open_block: string
-      representative_block: string
-      balance: string
-      modified_timestamp: string
-      block_count: string
-    }
-  }
-  account_key: {
-    body: {
-      account: string
-    }
-    response: {
-      key: string
-    }
-  }
-  accounts_balances: {
-    body: {
-      accounts: string[]
-    }
-    response: {
-      [account: string]: {
-        balance: string
-        pending: string
-      }
-    }
-  }
-  accounts_frontiers: {
-    body: {
-      accounts: string[]
-    }
-    response: {
-      frontiers: {
-        [account: string]: string
-      }
-    }
-  }
-  accounts_pending: {
-    body: {
-      accounts: string[]
-      count?: string
-    }
-    response: {
-      blocks: {
-        [account: string]: string
-      }
-    }
-  }
-  pending: {
-    body: {
-      account: string
-      count: string
-    }
-    response: {
-      blocks: string[]
-    }
-  }
-  pending_exists: {
-    body: {
-      hash: string
-    }
-    response: {
-      exists: '1' | '0'
-    }
-  }
-  account_representative: {
-    body: {
-      account: string
-    }
-    response: {
-      representative: string
-    }
-  }
-  account_weight: {
-    body: {
-      account: string
-    }
-    response: {
-      weight: string
-    }
-  }
-  available_supply: {
-    body: {}
-    response: {
-      available: string
-    }
-  }
+
   delegators: {
     body: {
       account: string
@@ -238,6 +223,7 @@ type API = {
       }
     }
   }
+
   delegators_count: {
     body: {
       account: string
@@ -246,6 +232,15 @@ type API = {
       count: string
     }
   }
+
+  deterministic_key: {
+    body: {
+      seed: string
+      index: string
+    }
+    response: any
+  }
+
   frontiers: {
     body: {
       account: string
@@ -256,6 +251,7 @@ type API = {
       }
     }
   }
+
   frontier_count: {
     body: {
       account: string
@@ -264,28 +260,17 @@ type API = {
       count: string
     }
   }
-  deterministic_key: {
-    body: {
-      seed: string
-      index: string
-    }
-    response: any
-  }
-  history: {
-    body: {
-      hash: string
-      count: string
-    }
-    response: HistoryBlock[]
-  }
+
   key_create: {
     body: any
     response: AccountInfo
   }
+
   key_expand: {
     body: any
     response: AccountInfo
   }
+
   krai_to_raw: {
     body: {
       amount: string | number
@@ -294,6 +279,15 @@ type API = {
       amount: string
     }
   }
+
+  history: {
+    body: {
+      hash: string
+      count: string
+    }
+    response: HistoryBlock[]
+  }
+
   ledger: {
     body: {
       account: string
@@ -318,12 +312,53 @@ type API = {
       }
     }
   }
+
+  pending: {
+    body: {
+      account: string
+      count: string
+    }
+    response: {
+      blocks: string[]
+    }
+  }
+
+  pending_exists: {
+    body: {
+      hash: string
+    }
+    response: {
+      exists: '1' | '0'
+    }
+  }
+
+  process: {
+    body: {
+      block: string
+    }
+    response: {
+      hash: string
+    }
+  }
+
+  receive: {
+    body: {
+      wallet: string
+      account: string
+      block: string
+    }
+    response: {
+      block: string
+    }
+  }
+
   receive_minimum: {
     body: {}
     response: {
       amount: string
     }
   }
+
   receive_minimum_set: {
     body: {
       amount: string
@@ -332,6 +367,7 @@ type API = {
       success: string
     }
   }
+
   representatives: {
     body: {}
     response: {
@@ -340,6 +376,7 @@ type API = {
       }
     }
   }
+
   successors: {
     body: {
       block: string
@@ -349,6 +386,7 @@ type API = {
       blocks: string[]
     }
   }
+
   work_generate: {
     body: {
       hash: string
@@ -357,12 +395,14 @@ type API = {
       work: string
     }
   }
+
   work_cancel: {
     body: {
       hash: string
     }
     response: {}
   }
+
   work_get: {
     body: {
       wallet: string
@@ -374,6 +414,17 @@ type API = {
   }
 }
 
+// namespace Block {
+//   export interface Get {
+//     type: string
+//     account: string
+//     representative: string
+//     source: string
+//     work: string
+//     signature: string
+//   }
+// }
+
 type GetBlock = {
   type: string
   account: string
@@ -382,12 +433,14 @@ type GetBlock = {
   work: string
   signature: string
 }
+
 type HistoryBlock = {
   type: string
   account: string
   hash: string
   amount: string
 }
+
 type SendBlock = {
   key: string
   account: string
