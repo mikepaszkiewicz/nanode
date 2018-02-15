@@ -1,9 +1,5 @@
 import axios from 'axios'
 
-interface APIDef {
-  [action: string]: any
-}
-
 type API = {
   account_balance: {
     body: {
@@ -469,7 +465,11 @@ type AccountInfo = {
   account: string
 }
 
-function createAPI<API extends APIDef = any>(baseURL: string, apiKey: string) {
+function createAPI<
+  API extends {
+    [action: string]: any
+  } = any
+>(baseURL: string, apiKey: string) {
   const rpc = axios.create({
     baseURL,
     headers: {
