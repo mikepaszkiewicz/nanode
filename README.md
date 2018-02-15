@@ -96,33 +96,33 @@ return await Nano.receive(
 
 All of these methods take a single account string or array of accounts:
 
-    - ```Nano.account.get()```
-    - ```Nano.account.balance()```
-    - ```Nano.account.balances()```
-    - ```Nano.account.block_count()```
-    - ```Nano.account.frontiers()```
-    - ```Nano.account.history()```
-    - ```Nano.account.info()```
-    - ```Nano.account.key()```
-    - ```Nano.account.ledger()```
-    - ```Nano.account.pending()```
-    - ```Nano.account.representative()```
-    - ```Nano.account.weight()```
+* `Nano.account.get()`
+* `Nano.account.balance()`
+* `Nano.account.balances()`
+* `Nano.account.block_count()`
+* `Nano.account.frontiers()`
+* `Nano.account.history()`
+* `Nano.account.info()`
+* `Nano.account.key()`
+* `Nano.account.ledger()`
+* `Nano.account.pending()`
+* `Nano.account.representative()`
+* `Nano.account.weight()`
 
 ### Block
 
 Block methods either require a block hash as a single argument, or a stringified block:
 
-    - ```Nano.block.account()```
-    - ```Nano.block.count()```
-    - ```Nano.block.chain()```
-    - ```Nano.block.change()```
-    - ```Nano.block.history()```
-    - ```Nano.block.open()```
-    - ```Nano.block.pending()```
-    - ```Nano.block.publish()```
-    - ```Nano.block.receive()```
-    - ```Nano.block.send()```
+* `Nano.block.account()`
+* `Nano.block.count()`
+* `Nano.block.chain()`
+* `Nano.block.change()`
+* `Nano.block.history()`
+* `Nano.block.open()`
+* `Nano.block.pending()`
+* `Nano.block.publish()`
+* `Nano.block.receive()`
+* `Nano.block.send()`
 
 ### Blocks
 
