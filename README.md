@@ -19,7 +19,7 @@ Want to build with NANO, but not running a full node? [Sign up for node access a
 
 ## Usage
 
-This library is built with TypeScript, and I highly reccommend you take advantage of the Intellisense. All fields on requests and responses for the RPC are strings - and for now, the same is true for this library.
+This library is built with TypeScript, and I highly reccommend you take advantage of your code editor's Intellisense features. All fields on requests and responses for the RPC are strings - and for now, the same is true for this library.
 
 The full code for these snippets can be found /examples directory
 
@@ -155,4 +155,6 @@ Exposes work methods to perform on hashes
 ## Todos
 
 * Use BigNumber, etc. to allow passing numbers
-* TypeDoc site + add remaining methods
+* TypeDoc site + add remaining method documentation
+* Better argument checking / error handling
+* Tests!
