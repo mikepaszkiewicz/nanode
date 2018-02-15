@@ -4,11 +4,13 @@ Dead simple, promise-based client for interacting and building services on top o
 
 Not hosting your own node? [Sign up for node access and get your API key at nanode.co](https://nanode.co/node-api) 
 
-## Usage
+## Install
 
 `npm install nanode`
 
-# Connect
+## Usage
+
+### Connect
 Initiate the client with your API key and a valid RPC url. Optionally pass your address and private key to the constructor.
 
 Not sure what your private key is? Call `nano.get_deterministic_key()` with the account seed to get all relevant account information.
