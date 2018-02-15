@@ -1,24 +1,25 @@
 {
-  "name": "nano-client-node",
-  "version": "0.0.2",
-  "description": "Send and receive nano",
+  "name": "nanode",
+  "version": "1.0.0",
+  "description":
+    "Dead simple, promise-based client for interacting and building services on top of the NANO network.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "debug": "ts-node --inspect-brk=9229 --debug examples/change.ts",
+    "debug": "ts-node --inspect-brk=9229 --debug examples/accounts.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "tsc"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mikepaszkiewicz/nano-client.git"
+    "url": "git+https://github.com/mikepaszkiewicz/nanode.git"
   },
   "author": "Mike Paszkiewicz",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mikepaszkiewicz/nano-client/issues"
+    "url": "https://github.com/mikepaszkiewicz/nanode/issues"
   },
-  "homepage": "https://github.com/mikepaszkiewicz/nano-client#readme",
+  "homepage": "https://github.com/mikepaszkiewicz/nanode#readme",
   "dependencies": {
     "@types/node": "^9.4.0",
     "axios": "^0.16.2",

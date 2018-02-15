@@ -23,3 +23,5 @@ export default async function open() {
     throw new Error(err.message)
   }
 }
+
+open()
