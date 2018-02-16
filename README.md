@@ -53,8 +53,7 @@ const target = await Nano.key.create()
 
 console.log(`Initializing account ${target.account} with funds..`)
 
-//send new account init funds from our walet
-const hash = await Nano.send('0.01', target.account)
+//send new account init funds from a wallet
 
 //open block with send's hash
 const hash = await Nano.open(
