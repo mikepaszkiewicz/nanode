@@ -419,7 +419,7 @@ export type HistoryBlock = {
 
 export type SendBlock = {
   key: string
-  account: string
+  account?: string
   destination: string
   balance: string
   amount: string
@@ -429,7 +429,7 @@ export type SendBlock = {
 
 export type ReceiveBlock = {
   key: string
-  account: string
+  account?: string
   previous: string
   work: string
   source: string
@@ -438,7 +438,7 @@ export type ReceiveBlock = {
 export type OpenBlock = {
   key: string
   source: string
-  previous?: string
+  previous: string
   representative: string
   work: string
 }

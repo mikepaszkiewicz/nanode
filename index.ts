@@ -3,58 +3,61 @@ const {accountPair} = require('./util/util.js')
 
 import {API, SendBlock, ReceiveBlock, OpenBlock, ChangeBlock} from './api'
 
-function createAPI<
-  API extends {
-    [action: string]: any
-  } = any
->(baseURL: string, apiKey: string) {
+export type RPCClient = (params: any) => Promise<any>
+function createAPI<API extends {[action: string]: any} = any>(
+  rpcClient: RPCClient
+) {
+  return async function callRPC<Action extends keyof API>(
+    action: Action,
+    body: API[Action]['body']
+  ): Promise<API[Action]['response']> {
+    const params = Object.assign({}, body, {action})
+    return rpcClient(params)
+  }
+}
+
+export function createAxiosClient(
+  apiKey: string,
+  baseURL = 'https://api.nanode.co/'
+): RPCClient {
   const rpc = axios.create({
     baseURL,
     headers: {
       Authorization: apiKey
     }
   })
-  return async function callRPC<Action extends keyof API>(
-    action: Action,
-    body: API[Action]['body']
-  ): Promise<API[Action]['response']> {
-    const request = Object.assign({}, body, {action})
 
-    try {
-      const result = await rpc.post('/', request)
-      if (result && result.data) {
-        return result.data
-      }
-
-      throw new Error(result.statusText)
-    } catch (err) {
-      throw new Error(err.message)
-    }
+  return async function(params: any): Promise<any> {
+    const {data} = await rpc.post('/', params)
+    return data
   }
 }
 
+export interface NanoConstructorOptions {
+  apiKey?: string
+  url?: string
+  rpcClient?: RPCClient
+  debug?: boolean
+}
+
 export default class Nano {
-  rpc = createAPI<API>(null, null)
+  rpc = createAPI<API>(null)
   debug: boolean
 
-  constructor(options: {api_key: string; url: string; debug?: boolean}) {
-    if (!options.api_key) {
-      throw new Error('Must pass api_key to constructor')
-    }
-    if (!options.url) {
-      throw new Error('Must past RPC URL to constructor')
-    }
+  constructor(options: NanoConstructorOptions) {
     this.debug = !!options.debug
-    this.rpc = createAPI<API>(options.url, options.api_key)
+    if (options.rpcClient) {
+      this.rpc = createAPI<API>(options.rpcClient)
+    } else {
+      const rpcClient = createAxiosClient(options.apiKey, options.url)
+      this.rpc = createAPI<API>(rpcClient)
+    }
   }
+
   log(message: string) {
     if (this.debug) {
       console.log(message)
     }
-  }
-
-  async call(action: string, body: any) {
-    return this.rpc(action as any, body)
   }
 
   withAccount(private_key: string) {
@@ -86,121 +89,106 @@ export default class Nano {
       throw new Error('Must pass target_private_key in arguments')
     }
 
-    try {
-      const {publicKey} = accountPair(target_private_key)
-      const work = await this.work.generate(publicKey)
-
-      const block = await this.block.open({
-        previous: publicKey,
-        key: target_private_key,
-        source: send_block_hash,
-        work: work.work,
-        representative
-      })
-
-      const result = await this.block.publish(block.block)
-      log(`Opened NANO block ${result.hash} with rep. ${representative}!`)
-      return result
-    } catch (err) {
-      throw new Error(`open failed: ${err.message}`)
+    if (!representative) {
+      representative =
+        'xrb_1nanode8ngaakzbck8smq6ru9bethqwyehomf79sae1k7xd47dkidjqzffeg'
     }
+
+    const {publicKey} = accountPair(target_private_key)
+    const work = await this.work.generate(publicKey)
+
+    const block = await this.block.open({
+      previous: publicKey,
+      key: target_private_key,
+      source: send_block_hash,
+      work: work.work,
+      representative
+    })
+
+    const result = await this.block.publish(block.block)
+    log(`Opened NANO block ${result.hash} with rep. ${representative}!`)
+    return result
   }
 
   //Top-level call: send block
   async send(
-    origin_private_key: string,
+    private_key: string,
     amount: string,
     recipient_wallet_address: string
   ) {
     const {log} = this
-    try {
-      if (!origin_private_key) {
-        throw new Error('Must pass origin_private_key argument')
-      }
 
-      const address = accountPair(origin_private_key).address
-
-      const account = await this.account.info(address)
-
-      const work = await this.work.generate(account.frontier)
-
-      const rai_to_send = await this.convert.toRaw(+amount * 1000, 'krai')
-
-      const block = await this.block.send({
-        key: origin_private_key,
-        account: address,
-        destination: recipient_wallet_address,
-        balance: account.balance,
-        amount: rai_to_send.amount,
-        previous: account.frontier,
-        work: work.work
-      })
-
-      const result = await this.block.publish(block.block)
-      log(`Sent ${account.balance} NANO to ${recipient_wallet_address}!`)
-      return result.hash
-    } catch (err) {
-      throw new Error(`Nano.send failed: ${err.message}`)
+    if (!private_key) {
+      throw new Error('Must pass private_key argument')
     }
+
+    const {frontier, work} = await this.generateLatestWork(private_key)
+    const rai_to_send = await this.convert.toRaw(+amount * 1000, 'krai')
+
+    const block = await this.block.send({
+      key: private_key,
+      // account: address,
+      destination: recipient_wallet_address,
+      balance: account.balance,
+      amount: rai_to_send.amount,
+      previous: frontier,
+      work
+    })
+
+    const result = await this.block.publish(block.block)
+    log(`Sent ${rai_to_send} NANO to ${recipient_wallet_address}!`)
+    return result.hash
   }
 
   //Top-level call: receive block
-  async receive(recipient_private_key: string, send_block_hash?: string) {
-    //if we aren't receiving to account passed in on init...
+  async receive(private_key: string, send_block_hash?: string) {
     const {log} = this
-    try {
-      if (!recipient_private_key) {
-        throw new Error('Must pass recipient_private_key argument')
-      }
 
-      const receiving_wallet = accountPair(recipient_private_key).address
-
-      const account = await this.account.info(receiving_wallet)
-
-      const work = await this.work.generate(account.frontier)
-
-      const block = await this.block.receive({
-        key: recipient_private_key,
-        account: receiving_wallet,
-        previous: account.frontier,
-        work: work.work,
-        source: send_block_hash
-      })
-      const result = await this.block.publish(block.block)
-      log(
-        `Received ${
-          account.balance
-        } NANO block ${send_block_hash} to wallet ${receiving_wallet}!`
-      )
-      return result
-    } catch (err) {
-      throw new Error(`Nano.send failed: ${err.message}`)
+    if (!private_key) {
+      throw new Error('Must pass private_key argument')
     }
+
+    const {address, frontier, work} = await this.generateLatestWork(private_key)
+
+    const block = await this.block.receive({
+      key: private_key,
+      previous: frontier,
+      work,
+      source: send_block_hash
+    })
+
+    const result = await this.block.publish(block.block)
+    log(`Received block ${send_block_hash} to wallet ${address}!`)
+    return result
   }
 
   //Top-level call: change block
-  async change(target_private_key: string, representative: string) {
+  async change(private_key: string, representative: string) {
     const {log} = this
 
-    try {
-      const address = accountPair(target_private_key).address
+    const {frontier, work} = await this.generateLatestWork(private_key)
 
-      const account = await this.account.info(address)
+    const block = await this.block.change({
+      previous: frontier,
+      representative,
+      work,
+      key: private_key
+    })
 
-      const work = await this.work.generate(account.frontier)
+    const result = await this.block.publish(block.block)
+    log(`Opened NANO block ${result.hash} with rep. ${representative}!`)
+    return result
+  }
 
-      const block = await this.block.change({
-        previous: account.frontier,
-        representative,
-        work: work.work,
-        key: target_private_key
-      })
+  async generateLatestWork(private_key: string) {
+    const {address} = accountPair(private_key)
+    const {frontier} = await this.account.info(address)
+    const {work} = await this.work.generate(frontier)
 
-      const result = await this.block.publish(block.block)
-      log(`Opened NANO block ${result.hash} with rep. ${representative}!`)
-      return result
-    } catch (err) {
-      throw new Error(`open failed: ${err.message}`)
+    return {
+      address,
+      frontier,
+      work
     }
   }
 
