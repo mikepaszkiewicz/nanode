@@ -60,7 +60,9 @@ export default class Nano {
     }
   }
 
-  withAccount(private_key: string) {
+  account(private_key: string) {
+    const {address} = accountPair(private_key)
+
     return {
       open: (respresentative?: string, hash?: string) => {
         return this.open(private_key, respresentative, hash)
@@ -73,6 +75,44 @@ export default class Nano {
       },
       change: (representative: string) => {
         return this.change(private_key, representative)
+      },
+      balance: () => {
+        return this.accounts.balance(address)
+      },
+      blockCount: () => {
+        return this.accounts.block_count(address)
+      },
+      history: (count?: string) => {
+        return this.accounts.history(address, count)
+      },
+      info: () => {
+        return this.accounts.info(address)
+      },
+      publicKey: () => {
+        return this.accounts.key(address)
+      },
+      ledger: (
+        count?: number,
+        representative?: boolean,
+        weight?: boolean,
+        pending?: boolean
+      ) => {
+        return this.accounts.ledger(
+          address,
+          count,
+          representative,
+          weight,
+          pending
+        )
+      },
+      pending: (count?: number, threshold?: string) => {
+        return this.accounts.pending(address, count, threshold)
+      },
+      representative: () => {
+        return this.accounts.representative(address)
+      },
+      weight: () => {
+        return this.accounts.weight(address)
       }
     }
   }
@@ -186,7 +226,7 @@ export default class Nano {
 
   async generateLatestWork(private_key: string) {
     const {address} = accountPair(private_key)
-    const {balance, frontier} = await this.account.info(address)
+    const {balance, frontier} = await this.accounts.info(address)
     const {work} = await this.work.generate(frontier)
 
     return {
@@ -198,7 +238,7 @@ export default class Nano {
   }
 
   //General account methods
-  get account() {
+  get accounts() {
     const {rpc, log} = this
     return {
       async get(key: string) {
@@ -280,6 +320,7 @@ export default class Nano {
       ) {
         const getMulti =
           (typeof accountOrAccounts as string | string[]) === 'array'
+        // TODO: convert threshold from xrb to raw
         return getMulti
           ? rpc('accounts_pending', {
               accounts: accountOrAccounts as string[],
