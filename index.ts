@@ -137,7 +137,7 @@ export default class Nano {
     const {publicKey} = accountPair(private_key)
     const {work} = await this.work.generate(publicKey)
 
-    const block = await this.block.open({
+    const block = await this.blocks.open({
       previous: publicKey,
       key: private_key,
       source: send_block_hash,
@@ -145,7 +145,7 @@ export default class Nano {
       representative
     })
 
-    const result = await this.block.publish(block.block)
+    const result = await this.blocks.publish(block.block)
     log(`Opened NANO block ${result.hash} with rep. ${representative}!`)
     return result
   }
@@ -165,7 +165,7 @@ export default class Nano {
     const {balance, frontier, work} = await this.generateLatestWork(private_key)
     const rai_to_send = await this.convert.toRaw(+amount * 1000, 'krai')
 
-    const block = await this.block.send({
+    const block = await this.blocks.send({
       key: private_key,
       // account: address,
       destination: recipient_wallet_address,
@@ -175,7 +175,7 @@ export default class Nano {
       work
     })
 
-    const result = await this.block.publish(block.block)
+    const result = await this.blocks.publish(block.block)
     log(`Sent ${rai_to_send} NANO to ${recipient_wallet_address}!`)
     return result.hash
   }
@@ -190,14 +190,14 @@ export default class Nano {
 
     const {address, frontier, work} = await this.generateLatestWork(private_key)
 
-    const block = await this.block.receive({
+    const block = await this.blocks.receive({
       key: private_key,
       previous: frontier,
       work,
       source: send_block_hash
     })
 
-    const result = await this.block.publish(block.block)
+    const result = await this.blocks.publish(block.block)
     log(`Received block ${send_block_hash} to wallet ${address}!`)
     return result
   }
@@ -212,14 +212,14 @@ export default class Nano {
 
     const {frontier, work} = await this.generateLatestWork(private_key)
 
-    const block = await this.block.change({
+    const block = await this.blocks.change({
       previous: frontier,
       representative,
       work,
       key: private_key
     })
 
-    const result = await this.block.publish(block.block)
+    const result = await this.blocks.publish(block.block)
     log(`Opened NANO block ${result.hash} with rep. ${representative}!`)
     return result
   }
@@ -345,7 +345,7 @@ export default class Nano {
   }
 
   //General block related calls
-  get block() {
+  get blocks() {
     const {rpc, log} = this
 
     return {
@@ -377,6 +377,23 @@ export default class Nano {
           hash,
           count: count || '0'
         })
+      },
+      //Get one or many block's information
+      async info(hashOrHashes: string | string[], details: boolean) {
+        const getMulti = (typeof hashOrHashes as string | string[]) === 'array'
+        if (getMulti) {
+          return details
+            ? rpc('blocks_info', {
+                hashes: hashOrHashes as string[]
+              }).then(res => res.blocks)
+            : rpc('blocks', {
+                hashes: hashOrHashes as string[]
+              }).then(res => res.blocks)
+        } else {
+          return rpc('block', {
+            hash: hashOrHashes as string
+          }).then(res => res.contents)
+        }
       },
       async open(block: OpenBlock) {
         return rpc('block_create', {
@@ -417,26 +434,13 @@ export default class Nano {
           )
           return res
         })
+      },
+      async successors(block: string, count?: number) {
+        return rpc('successors', {
+          block,
+          count: count ? count.toString() : '1'
+        })
       }
-    }
-  }
-
-  //Get one or many block's information
-  async blocks(hashOrHashes: string | string[], details: boolean) {
-    const {rpc} = this
-    const getMulti = (typeof hashOrHashes as string | string[]) === 'array'
-    if (getMulti) {
-      return details
-        ? rpc('blocks_info', {
-            hashes: hashOrHashes as string[]
-          }).then(res => res.blocks)
-        : rpc('blocks', {
-            hashes: hashOrHashes as string[]
-          }).then(res => res.blocks)
-    } else {
-      return rpc('block', {
-        hash: hashOrHashes as string
-      }).then(res => res.contents)
     }
   }
 
@@ -553,12 +557,5 @@ export default class Nano {
         }).then(res => res.success === '')
       }
     }
-  }
-
-  async successors(block: string, count?: number) {
-    return this.rpc('successors', {
-      block,
-      count: count ? count.toString() : '1'
-    })
   }
 }
