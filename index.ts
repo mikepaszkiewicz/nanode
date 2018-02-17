@@ -141,11 +141,11 @@ export default class Nano {
 
     if (!send_block_hash) {
       const res = await this.accounts.pending(address, 1)
-      if (!res.blocks || Object.keys(res.blocks).length === 0) {
+      if (!res.blocks || res.blocks.length === 0) {
         throw new Error('This account has no pending blocks to receive')
       }
 
-      send_block_hash = res.blocks[Object.keys(res.blocks)[0]]
+      send_block_hash = res.blocks[0]
     }
 
     const block = await this.blocks.open({
@@ -207,11 +207,11 @@ export default class Nano {
 
     if (!send_block_hash) {
       const res = await this.accounts.pending(address, 1)
-      if (!res.blocks || Object.keys(res.blocks).length === 0) {
+      if (!res.blocks || res.blocks.length === 0) {
         throw new Error('This account has no pending blocks to receive')
       }
 
-      send_block_hash = res.blocks[Object.keys(res.blocks)[0]]
+      send_block_hash = res.blocks[0]
     }
 
     const block = await this.blocks.receive({
@@ -337,25 +337,25 @@ export default class Nano {
           pending: (!!pending).toString()
         })
       },
-      async pending(
-        accountOrAccounts: string | string[],
+      async pending(account: string, count?: number, threshold?: string) {
+        // TODO: convert threshold from xrb to raw
+        return rpc('pending', {
+          account,
+          threshold,
+          count: count.toString() || '1'
+        })
+      },
+      async pendingMulti(
+        accounts: string[],
         count?: number,
         threshold?: string
       ) {
         // TODO: convert threshold from xrb to raw
-        if (Array.isArray(accountOrAccounts)) {
-          return rpc('accounts_pending', {
-            accounts: accountOrAccounts as string[],
-            threshold,
-            count: count.toString() || '1'
-          })
-        } else {
-          return rpc('pending', {
-            account: accountOrAccounts as string,
-            threshold,
-            count: count.toString() || '1'
-          })
-        }
+        return rpc('accounts_pending', {
+          accounts,
+          threshold,
+          count: count.toString() || '1'
+        })
       },
       async representative(account: string) {
         return rpc('account_representative', {
