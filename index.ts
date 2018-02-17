@@ -1,472 +1,7 @@
 import axios from 'axios'
 const {accountPair} = require('./util/util.js')
 
-type API = {
-  account_balance: {
-    body: {
-      account: string
-    }
-    response: {
-      balance: string
-      pending: string
-    }
-  }
-
-  account_block_count: {
-    body: {
-      account: string
-    }
-    response: {
-      block_count: string
-    }
-  }
-
-  account_get: {
-    body: {
-      key: string
-    }
-    response: {
-      account: string
-    }
-  }
-
-  account_history: {
-    body: {
-      account: string //target wallet
-      count?: string //return limit
-    }
-    response: any
-  }
-
-  account_info: {
-    body: {
-      account: string //target wallet
-    }
-    response: {
-      frontier: string
-      open_block: string
-      representative_block: string
-      balance: string
-      modified_timestamp: string
-      block_count: string
-    }
-  }
-
-  account_key: {
-    body: {
-      account: string
-    }
-    response: {
-      key: string
-    }
-  }
-
-  account_representative: {
-    body: {
-      account: string
-    }
-    response: {
-      representative: string
-    }
-  }
-
-  account_weight: {
-    body: {
-      account: string
-    }
-    response: {
-      weight: string
-    }
-  }
-
-  accounts_balances: {
-    body: {
-      accounts: string[]
-    }
-    response: {
-      [account: string]: {
-        balance: string
-        pending: string
-      }
-    }
-  }
-
-  accounts_frontiers: {
-    body: {
-      accounts: string[]
-    }
-    response: {
-      frontiers: {
-        [account: string]: string
-      }
-    }
-  }
-
-  accounts_pending: {
-    body: {
-      accounts: string[]
-      count?: string
-    }
-    response: {
-      blocks: {
-        [account: string]: string
-      }
-    }
-  }
-
-  available_supply: {
-    body: {}
-    response: {
-      available: string
-    }
-  }
-
-  block: {
-    body: {
-      hash: string
-    }
-    response: {
-      contents: GetBlock
-    }
-  }
-
-  blocks: {
-    body: {
-      hashes: string[]
-    }
-    response: {
-      blocks: {
-        [account: string]: GetBlock
-      }
-    }
-  }
-
-  block_account: {
-    body: {
-      hash: string
-    }
-    response: {
-      account: string
-    }
-  }
-
-  block_count: {
-    body: {}
-    response: {
-      count: string
-      unchecked: string
-    }
-  }
-
-  block_count_type: {
-    body: {}
-    response: {
-      send: string
-      receive: string
-      open: string
-      change: string
-    }
-  }
-
-  block_create: {
-    body: {
-      type: 'open' | 'send' | 'receive' | 'change'
-      key: string //open, send, receive: PRIVATE KEY for XRB wallet to 'sign' the block
-      previous?: string
-      work: string
-      account?: string //open, send: The 'target' wallet which is being opened or debited
-      representative?: string //open: A 'representative' wallet to use your balance as vote weight
-      source?: string //open, receive: Always refers to the most recent block hash on YOUR account
-      signature?: string
-      destination?: string //send: destination xrb wallet
-      balance?: string //send: current balance of debited address
-      amount?: string
-    }
-    response: {
-      hash: string
-      block: string
-    }
-  }
-
-  blocks_info: {
-    body: {
-      hashes: string[]
-    }
-    response: {
-      blocks: {
-        [account: string]: {
-          contents: GetBlock
-          block_account: string
-          amount: string
-        }
-      }
-    }
-  }
-
-  chain: {
-    body: {
-      block: string
-      count: string
-    }
-  }
-
-  delegators: {
-    body: {
-      account: string
-    }
-    response: {
-      delegators: {
-        [account: string]: string
-      }
-    }
-  }
-
-  delegators_count: {
-    body: {
-      account: string
-    }
-    response: {
-      count: string
-    }
-  }
-
-  deterministic_key: {
-    body: {
-      seed: string
-      index: string
-    }
-    response: any
-  }
-
-  frontiers: {
-    body: {
-      account: string
-    }
-    response: {
-      frontiers: {
-        [account: string]: string
-      }
-    }
-  }
-
-  frontier_count: {
-    body: {
-      account: string
-    }
-    response: {
-      count: string
-    }
-  }
-
-  key_create: {
-    body: any
-    response: AccountInfo
-  }
-
-  key_expand: {
-    body: any
-    response: AccountInfo
-  }
-
-  krai_to_raw: {
-    body: {
-      amount: string | number
-    }
-    response: {
-      amount: string
-    }
-  }
-
-  history: {
-    body: {
-      hash: string
-      count: string
-    }
-    response: HistoryBlock[]
-  }
-
-  ledger: {
-    body: {
-      account: string
-      count?: string
-      representative?: string
-      weight?: string
-      pending?: string
-    }
-    response: {
-      accounts: {
-        [account: string]: {
-          frontier: string
-          open_block: string
-          representative_block: string
-          balance: string
-          modified_timestamp: string
-          block_count: string
-          representative?: string
-          weight?: string
-          pending?: string
-        }
-      }
-    }
-  }
-
-  pending: {
-    body: {
-      account: string
-      count: string
-    }
-    response: {
-      blocks: string[]
-    }
-  }
-
-  pending_exists: {
-    body: {
-      hash: string
-    }
-    response: {
-      exists: '1' | '0'
-    }
-  }
-
-  process: {
-    body: {
-      block: string
-    }
-    response: {
-      hash: string
-    }
-  }
-
-  receive: {
-    body: {
-      wallet: string
-      account: string
-      block: string
-    }
-    response: {
-      block: string
-    }
-  }
-
-  receive_minimum: {
-    body: {}
-    response: {
-      amount: string
-    }
-  }
-
-  receive_minimum_set: {
-    body: {
-      amount: string
-    }
-    response: {
-      success: string
-    }
-  }
-
-  representatives: {
-    body: {}
-    response: {
-      representatives: {
-        [account: string]: string
-      }
-    }
-  }
-
-  successors: {
-    body: {
-      block: string
-      count: string
-    }
-    response: {
-      blocks: string[]
-    }
-  }
-
-  work_generate: {
-    body: {
-      hash: string
-    }
-    response: {
-      work: string
-    }
-  }
-
-  work_cancel: {
-    body: {
-      hash: string
-    }
-    response: {}
-  }
-
-  work_get: {
-    body: {
-      wallet: string
-      account: string
-    }
-    response: {
-      work: string
-    }
-  }
-}
-
-type GetBlock = {
-  type: string
-  account: string
-  representative: string
-  source: string
-  work: string
-  signature: string
-}
-
-type HistoryBlock = {
-  type: string
-  account: string
-  hash: string
-  amount: string
-}
-
-type SendBlock = {
-  key: string
-  account: string
-  destination: string
-  balance: string
-  amount: string
-  previous: string
-  work: string
-}
-
-type ReceiveBlock = {
-  key: string
-  account: string
-  previous: string
-  work: string
-  source: string
-}
-
-type OpenBlock = {
-  key: string
-  source: string
-  previous?: string
-  representative: string
-  work: string
-}
-
-type ChangeBlock = {
-  previous: string
-  key: string
-  work: string
-  representative: string
-}
-
-type AccountInfo = {
-  public: string
-  private: string
-  account: string
-}
-
-// (params: any) => Promise<any>
+import {API, SendBlock, ReceiveBlock, OpenBlock, ChangeBlock} from './api'
 
 function createAPI<
   API extends {
@@ -680,10 +215,6 @@ export default class Nano {
           )
         }
         return rpc('account_get', {key})
-          .then(res => res)
-          .catch(err => {
-            throw new Error(`account.get failed: ${err.message}`)
-          })
       },
       async balance(account?: string) {
         account = this.origin_address || account
@@ -693,19 +224,11 @@ export default class Nano {
           )
         }
         return rpc('account_balance', {account})
-          .then(res => res)
-          .catch(err => {
-            throw new Error(`account.balance failed: ${err.message}`)
-          })
       },
       async balances(accounts: string[], count?: string) {
         return rpc('accounts_balances', {
           accounts
         })
-          .then(res => res)
-          .catch(err => {
-            throw new Error(`account.balances failed: ${err.message}`)
-          })
       },
       async block_count(account?: string) {
         account = this.origin_address || account
@@ -717,19 +240,11 @@ export default class Nano {
         return rpc('account_block_count', {
           account
         })
-          .then(res => res)
-          .catch(err => {
-            throw new Error(`account.block_count failed: ${err.message}`)
-          })
       },
       async frontiers(accounts: string[], count?: string) {
         return rpc('accounts_frontiers', {
           accounts
         })
-          .then(res => res)
-          .catch(err => {
-            throw new Error(`account.frontiers failed: ${err.message}`)
-          })
       },
       async history(account?: string, count?: string) {
         account = this.origin_address || account
@@ -741,11 +256,7 @@ export default class Nano {
         return rpc('account_history', {
           account,
           count: count || '1'
-        })
-          .then(res => res.data)
-          .catch(err => {
-            throw new Error(`account.pending failed: ${err.message}`)
-          })
+        }).then(res => res.data)
       },
       async info(account?: string) {
         account = this.origin_address || account
@@ -754,22 +265,14 @@ export default class Nano {
             `Must pass origin_address to constructor, or account name to this method`
           )
         }
-        return rpc('account_info', {account})
-          .then(account => {
-            log(`(ACCOUNT) balance: ${account.balance}`)
-            log(`(ACCOUNT) latest hash: ${account.frontier}`)
-            return account
-          })
-          .catch(err => {
-            throw new Error(`account.info failed: ${err.message}`)
-          })
+        return rpc('account_info', {account}).then(account => {
+          log(`(ACCOUNT) balance: ${account.balance}`)
+          log(`(ACCOUNT) latest hash: ${account.frontier}`)
+          return account
+        })
       },
       async key(account: string) {
         return rpc('account_key', {account})
-          .then(res => res)
-          .catch(err => {
-            throw new Error(`account.key failed: ${err.message}`)
-          })
       },
       async ledger(
         account: string,
@@ -784,17 +287,13 @@ export default class Nano {
             `Must pass origin_address to constructor, or account name to this method`
           )
         }
-        return await rpc('ledger', {
+        return rpc('ledger', {
           account,
           count: count.toString() || '1',
           representative: (!!representative).toString(),
           weight: (!!weight).toString(),
           pending: (!!pending).toString()
         })
-          .then(res => res)
-          .catch(err => {
-            throw new Error(`ledger failed: ${err.message}`)
-          })
       },
       async pending(
         accountOrAccounts: string | string[],
@@ -809,37 +308,19 @@ export default class Nano {
               threshold,
               count: count.toString() || '1'
             })
-              .then(res => res)
-              .catch(err => {
-                throw new Error(
-                  `account.accounts_pending failed: ${err.message}`
-                )
-              })
           : rpc('pending', {
               account: accountOrAccounts as string,
               threshold,
               count: count.toString() || '1'
             })
-              .then(res => res)
-              .catch(err => {
-                throw new Error(`account.pending failed: ${err.message}`)
-              })
       },
       async representative(account: string) {
         return rpc('account_representative', {
           account
-        })
-          .then(res => res.representative)
-          .catch(err => {
-            throw new Error(`account.representative failed: ${err.message}`)
-          })
+        }).then(res => res.representative)
       },
       async wieght(account: string) {
-        return rpc('account_weight', {account})
-          .then(res => res.weight)
-          .catch(err => {
-            throw new Error(`account.weight failed: ${err.message}`)
-          })
+        return rpc('account_weight', {account}).then(res => res.weight)
       }
     }
   }
@@ -850,119 +331,73 @@ export default class Nano {
 
     return {
       async account(hash: string) {
-        return rpc('block_account', {hash})
-          .then(res => {
-            return res.account
-          })
-          .catch((err: Error) => {
-            throw new Error(`block.account failed: ${err.message}`)
-          })
+        return rpc('block_account', {hash}).then(res => {
+          return res.account
+        })
       },
       async count(by_type?: string) {
-        return by_type
-          ? rpc('block_count_type', {})
-              .then(res => res)
-              .catch((err: Error) => {
-                throw new Error(`block.count_type failed: ${err.message}`)
-              })
-          : rpc('block_count', {})
-              .then(res => res)
-              .catch((err: Error) => {
-                throw new Error(`block.count failed: ${err.message}`)
-              })
+        return by_type ? rpc('block_count_type', {}) : rpc('block_count', {})
       },
       async chain(block: string, count?: string) {
         return rpc('chain', {
           block,
           count: count || '1'
-        })
-          .then(res => res.blocks)
-          .catch((err: Error) => {
-            throw new Error(`block.chain failed: ${err.message}`)
-          })
+        }).then(res => res.blocks)
       },
       async change(block: ChangeBlock) {
         return rpc('block_create', {
           type: 'change',
           ...block
+        }).then(res => {
+          log(`(BLOCK) Changing ${block.key}`)
+          return res
         })
-          .then(res => {
-            log(`(BLOCK) Changing ${block.key}`)
-            return res
-          })
-          .catch((err: Error) => {
-            throw new Error(`block.change failed: ${err.message}`)
-          })
       },
       async history(hash: string, count?: string) {
         return rpc('history', {
           hash,
           count: count || '0'
         })
-          .then(res => res)
-          .catch((err: Error) => {
-            throw new Error(`block.change failed: ${err.message}`)
-          })
       },
       async open(block: OpenBlock) {
         return rpc('block_create', {
           type: 'open',
           ...block
+        }).then(res => {
+          log(`(BLOCK) Opening ${block.key}`)
+          return res
         })
-          .then(res => {
-            log(`(BLOCK) Opening ${block.key}`)
-            return res
-          })
-          .catch((err: Error) => {
-            throw new Error(`block.open failed: ${err.message}`)
-          })
       },
       async pending(hash: string) {
-        return rpc('pending_exists', {hash})
-          .then(res => res.exists === '1')
-          .catch((err: Error) => {
-            throw new Error(`block.change failed: ${err.message}`)
-          })
+        return rpc('pending_exists', {hash}).then(res => res.exists === '1')
       },
       async publish(block: string) {
-        return rpc('process', {block: block})
-          .then(res => {
-            log(`(BLOCK) Published: ${res.hash}`)
-            return res
-          })
-          .catch((err: Error) => {
-            throw new Error(`block.publish failed: ${err.message}`)
-          })
+        return rpc('process', {block: block}).then(res => {
+          log(`(BLOCK) Published: ${res.hash}`)
+          return res
+        })
       },
       async receive(block: ReceiveBlock) {
         return rpc('block_create', {
           type: 'receive',
           ...block
+        }).then(res => {
+          log(`Received block ${block.source}`)
+          return res
         })
-          .then(res => {
-            log(`Received block ${block.source}`)
-            return res
-          })
-          .catch((err: Error) => {
-            throw new Error(`block.receive failed: ${err.message}`)
-          })
       },
       async send(block: SendBlock) {
         return rpc('block_create', {
           type: 'send',
           ...block
+        }).then(res => {
+          log(
+            `(BLOCK) Sending ${block.amount} from ${block.account} to ${
+              block.destination
+            }`
+          )
+          return res
         })
-          .then(res => {
-            log(
-              `(BLOCK) Sending ${block.amount} from ${block.account} to ${
-                block.destination
-              }`
-            )
-            return res
-          })
-          .catch((err: Error) => {
-            throw new Error(`block.send failed: ${err.message}`)
-          })
       }
     }
   }
@@ -975,26 +410,14 @@ export default class Nano {
       return details
         ? rpc('blocks_info', {
             hashes: hashOrHashes as string[]
-          })
-            .then(res => res.blocks)
-            .catch((err: Error) => {
-              throw new Error(`blocks.get failed: ${err.message}`)
-            })
+          }).then(res => res.blocks)
         : rpc('blocks', {
             hashes: hashOrHashes as string[]
-          })
-            .then(res => res.blocks)
-            .catch((err: Error) => {
-              throw new Error(`blocks.get failed: ${err.message}`)
-            })
+          }).then(res => res.blocks)
     } else {
       return rpc('block', {
         hash: hashOrHashes as string
-      })
-        .then(res => res.contents)
-        .catch((err: Error) => {
-          throw new Error(`block.get failed: ${err.message}`)
-        })
+      }).then(res => res.contents)
     }
   }
 
@@ -1006,29 +429,17 @@ export default class Nano {
         if (!amount) {
           throw new Error('Must pass amount to conversion call')
         }
-        return await rpc(`${denomination}_to_raw` as any, {
+        return rpc(`${denomination}_to_raw` as any, {
           amount: amount.toString()
         })
-          .then(res => res)
-          .catch(err => {
-            throw new Error(
-              `convert.${denomination}_to_rai failed: ${err.message}`
-            )
-          })
       },
       async fromRaw(amount: number, denomination: 'krai' | 'mrai' | 'rai') {
         if (!amount) {
           throw new Error('Must pass amount to conversion call')
         }
-        return await rpc(`${denomination}_from_raw` as any, {
+        return rpc(`${denomination}_from_raw` as any, {
           amount: amount.toString()
         })
-          .then(res => res)
-          .catch(err => {
-            throw new Error(
-              `convert.${denomination}_from_raw failed: ${err.message}`
-            )
-          })
       }
     }
   }
@@ -1039,18 +450,10 @@ export default class Nano {
     const {rpc} = this
     return {
       async get(account: string) {
-        return rpc('delegators', {account})
-          .then(res => res)
-          .catch((err: Error) => {
-            throw new Error(`delegators.get failed: ${err.message}`)
-          })
+        return rpc('delegators', {account}).then(res => res)
       },
       async count(account: string) {
-        return rpc('delegators_count', {account})
-          .then(res => res.count)
-          .catch((err: Error) => {
-            throw new Error(`delegators.count failed: ${err.message}`)
-          })
+        return rpc('delegators_count', {account}).then(res => res.count)
       }
     }
   }
@@ -1065,17 +468,9 @@ export default class Nano {
           account,
           count: count || '1'
         })
-          .then(res => res)
-          .catch((err: Error) => {
-            throw new Error(`frontiers.get failed: ${err.message}`)
-          })
       },
       async count(account: string) {
-        return rpc('frontier_count', {account})
-          .then(res => res.count)
-          .catch((err: Error) => {
-            throw new Error(`frontiers.count failed: ${err.message}`)
-          })
+        return rpc('frontier_count', {account}).then(res => res.count)
       }
     }
   }
@@ -1085,77 +480,39 @@ export default class Nano {
     const {rpc, log} = this
     return {
       async create() {
-        return rpc('key_create', {})
-          .then(res => {
-            log(`Created key ${res}`)
-            return res
-          })
-          .catch(err => {
-            throw new Error(`key.create failed: ${err.message}`)
-          })
+        return rpc('key_create', {}).then(res => {
+          log(`Created key ${res}`)
+          return res
+        })
       },
       async expand(key: string) {
-        return rpc('key_expand', {})
-          .then(res => res)
-          .catch(err => {
-            throw new Error(`key.expand failed: ${err.message}`)
-          })
+        return rpc('key_expand', {key})
       }
     }
   }
 
-  //Generate, cancel, and get work
+  //Generate and get work
   get work() {
     const {rpc, log} = this
 
     return {
       async generate(hash: string) {
-        return rpc('work_generate', {hash})
-          .then(result => {
-            log(`(WORK) generated PoW: ${result.work}`)
-            return result
-          })
-          .catch(err => {
-            throw new Error(`work.generate failed: ${err.message}`)
-          })
+        return rpc('work_generate', {hash}).then(result => {
+          log(`(WORK) generated PoW: ${result.work}`)
+          return result
+        })
       },
-      async cancel(hash: string) {
-        return rpc('work_cancel', {hash})
-          .then(result => {
-            log(`(WORK) cancelled PoW for ${hash}`)
-            return result
-          })
-          .catch(err => {
-            throw new Error(`work.cancel failed: ${err.message}`)
-          })
-      },
-      async get(wallet: string, account: string) {
-        return rpc('work_get', {wallet, account})
-          .then(result => {
-            log(`(WORK) retrieved PoW: ${result.work}`)
-            return result
-          })
-          .catch(err => {
-            throw new Error(`work.get failed: ${err.message}`)
-          })
+      async validate(work: string, hash: string) {
+        return rpc('work_validate', {work, hash})
       }
     }
   }
 
   async available() {
-    return this.rpc('available_supply', {})
-      .then(res => res.available)
-      .catch(err => {
-        throw new Error(`available failed: ${err.message}`)
-      })
+    return this.rpc('available_supply', {}).then(res => res.available)
   }
   async representatives() {
-    const {rpc} = this
-    return rpc('representatives', {})
-      .then(res => res.representatives)
-      .catch((err: Error) => {
-        throw new Error(`representatives failed: ${err.message}`)
-      })
+    return this.rpc('representatives', {}).then(res => res.representatives)
   }
 
   async get_deterministic_key(seed: string) {
@@ -1163,10 +520,6 @@ export default class Nano {
       seed,
       index: '0'
     })
-      .then(res => res)
-      .catch(err => {
-        throw new Error(`get_dertiministic_key failed: ${err.message}`)
-      })
   }
 
   get minimumReceive() {
@@ -1174,32 +527,19 @@ export default class Nano {
     return {
       async get() {
         return rpc('receive_minimum', {})
-          .then(res => res.amount)
-          .catch(err => {
-            throw new Error(`available failed: ${err.message}`)
-          })
       },
       async set(amount: string) {
         return rpc('receive_minimum_set', {
           amount
-        })
-          .then(res => res.success === '')
-          .catch(err => {
-            throw new Error(`available failed: ${err.message}`)
-          })
+        }).then(res => res.success === '')
       }
     }
   }
 
   async successors(block: string, count?: number) {
-    const {rpc} = this
-    return rpc('successors', {
+    return this.rpc('successors', {
       block,
       count: count ? count.toString() : '1'
     })
-      .then(res => res.blocks)
-      .catch((err: Error) => {
-        throw new Error(`representatives failed: ${err.message}`)
-      })
   }
 }
