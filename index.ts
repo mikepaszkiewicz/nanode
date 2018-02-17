@@ -1,4 +1,5 @@
 import axios from 'axios'
+const {accountPair} = require('./util/util.js')
 
 type API = {
   account_balance: {
@@ -465,6 +466,8 @@ type AccountInfo = {
   account: string
 }
 
+// (params: any) => Promise<any>
+
 function createAPI<
   API extends {
     [action: string]: any
@@ -498,16 +501,8 @@ function createAPI<
 export default class Nano {
   rpc = createAPI<API>(null, null)
   debug: boolean
-  origin_address?: string
-  origin_key?: string
 
-  constructor(options: {
-    api_key: string
-    url: string
-    origin_address?: string
-    origin_key?: string
-    debug?: boolean
-  }) {
+  constructor(options: {api_key: string; url: string; debug?: boolean}) {
     if (!options.api_key) {
       throw new Error('Must pass api_key to constructor')
     }
@@ -516,37 +511,52 @@ export default class Nano {
     }
     this.debug = !!options.debug
     this.rpc = createAPI<API>(options.url, options.api_key)
-    this.origin_address = options.origin_address
-    this.origin_key = options.origin_key
   }
   log(message: string) {
     if (this.debug) {
       console.log(message)
     }
   }
+
   async call(action: string, body: any) {
     return this.rpc(action as any, body)
   }
 
+  withAccount(private_key: string) {
+    return {
+      open: (respresentative?: string, hash?: string) => {
+        return this.open(private_key, respresentative, hash)
+      },
+      receive: (hash?: string) => {
+        return this.receive(private_key, hash)
+      },
+      send: (amount: string, address: string) => {
+        return this.send(private_key, amount, address)
+      },
+      change: (representative: string) => {
+        return this.change(private_key, representative)
+      }
+    }
+  }
+
   //Top-level call: open block
   async open(
-    send_block_hash: string,
-    representative: string,
-    target_private_key?: string,
-    target_public_key?: string
+    target_private_key: string,
+    representative?: string,
+    send_block_hash?: string
   ) {
     const {log} = this
 
-    const private_key = this.origin_key || target_private_key
-    if (!private_key) {
-      throw new Error('Must pass origin_key in either open call or constructor')
+    if (!target_private_key) {
+      throw new Error('Must pass target_private_key in arguments')
     }
 
     try {
-      const work = await this.work.generate(target_public_key)
+      const {publicKey} = accountPair(target_private_key)
+      const work = await this.work.generate(publicKey)
 
       const block = await this.block.open({
-        previous: target_public_key,
+        previous: publicKey,
         key: target_private_key,
         source: send_block_hash,
         work: work.work,
@@ -563,35 +573,27 @@ export default class Nano {
 
   //Top-level call: send block
   async send(
+    origin_private_key: string,
     amount: string,
-    recipient_wallet_address: string,
-    origin_private_key?: string,
-    origin_account_address?: string
+    recipient_wallet_address: string
   ) {
     const {log} = this
     try {
-      const origin_wallet = this.origin_address || origin_account_address
-      if (!origin_wallet) {
-        throw new Error(
-          'Must pass origin_account_address in either send or constructor'
-        )
-      }
-      const private_key = this.origin_key || origin_private_key
-      if (!private_key) {
-        throw new Error(
-          'Must pass origin_account_address in either send or constructor'
-        )
+      if (!origin_private_key) {
+        throw new Error('Must pass origin_private_key argument')
       }
 
-      const account = await this.account.info(origin_wallet)
+      const address = accountPair(origin_private_key).address
+
+      const account = await this.account.info(address)
 
       const work = await this.work.generate(account.frontier)
 
       const rai_to_send = await this.convert.toRaw(+amount * 1000, 'krai')
 
       const block = await this.block.send({
-        key: private_key,
-        account: origin_wallet,
+        key: origin_private_key,
+        account: address,
         destination: recipient_wallet_address,
         balance: account.balance,
         amount: rai_to_send.amount,
@@ -608,33 +610,22 @@ export default class Nano {
   }
 
   //Top-level call: receive block
-  async receive(
-    send_block_hash: string,
-    recipient_private_key?: string,
-    recipient_wallet_address?: string
-  ) {
+  async receive(recipient_private_key: string, send_block_hash?: string) {
     //if we aren't receiving to account passed in on init...
     const {log} = this
     try {
-      const receiving_wallet = this.origin_address || recipient_wallet_address
-      if (!receiving_wallet) {
-        throw new Error(
-          'Must pass recipient_wallet_address in either receive call or constructor'
-        )
+      if (!recipient_private_key) {
+        throw new Error('Must pass recipient_private_key argument')
       }
-      const private_key = this.origin_key || recipient_private_key
-      if (!private_key) {
-        throw new Error(
-          'Must pass origin_key in either receive call or constructor'
-        )
-      }
+
+      const receiving_wallet = accountPair(recipient_private_key).address
 
       const account = await this.account.info(receiving_wallet)
 
       const work = await this.work.generate(account.frontier)
 
       const block = await this.block.receive({
-        key: private_key,
+        key: recipient_private_key,
         account: receiving_wallet,
         previous: account.frontier,
         work: work.work,
@@ -653,19 +644,18 @@ export default class Nano {
   }
 
   //Top-level call: change block
-  async change(
-    previous: string,
-    representative: string,
-    target_private_key?: string,
-    target_public_key?: string
-  ) {
+  async change(target_private_key: string, representative: string) {
     const {log} = this
 
     try {
-      const work = await this.work.generate(previous)
+      const address = accountPair(target_private_key).address
+
+      const account = await this.account.info(address)
+
+      const work = await this.work.generate(account.frontier)
 
       const block = await this.block.change({
-        previous,
+        previous: account.frontier,
         representative,
         work: work.work,
         key: target_private_key

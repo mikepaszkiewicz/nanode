@@ -5,8 +5,6 @@ import Nano from '../index'
 const nano = new Nano({
   api_key: process.env.API_KEY,
   url: `https://api.nanode.co`,
-  origin_address: process.env.SENDER_WALLET,
-  origin_key: process.env.SENDER_WALLET_PRIVATE_KEY,
   debug: true
 })
 
