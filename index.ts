@@ -52,6 +52,8 @@ export default class Nano {
       const rpcClient = createAxiosClient(options.apiKey, options.url)
       this.rpc = createAPI<API>(rpcClient)
     }
+
+    this.log = this.log.bind(this)
   }
 
   log(message: string) {
@@ -134,8 +136,17 @@ export default class Nano {
         'xrb_1nanode8ngaakzbck8smq6ru9bethqwyehomf79sae1k7xd47dkidjqzffeg'
     }
 
-    const {publicKey} = accountPair(private_key)
+    const {address, publicKey} = accountPair(private_key)
     const {work} = await this.work.generate(publicKey)
+
+    if (!send_block_hash) {
+      const res = await this.accounts.pending(address, 1)
+      if (!res.blocks || Object.keys(res.blocks).length === 0) {
+        throw new Error('This account has no pending blocks to receive')
+      }
+
+      send_block_hash = res.blocks[Object.keys(res.blocks)[0]]
+    }
 
     const block = await this.blocks.open({
       previous: publicKey,
@@ -146,7 +157,11 @@ export default class Nano {
     })
 
     const result = await this.blocks.publish(block.block)
-    log(`Opened NANO block ${result.hash} with rep. ${representative}!`)
+    log(
+      `Opened NANO account ${address} with block ${
+        result.hash
+      } and representative ${representative}!`
+    )
     return result
   }
 
@@ -189,6 +204,15 @@ export default class Nano {
     }
 
     const {address, frontier, work} = await this.generateLatestWork(private_key)
+
+    if (!send_block_hash) {
+      const res = await this.accounts.pending(address, 1)
+      if (!res.blocks || Object.keys(res.blocks).length === 0) {
+        throw new Error('This account has no pending blocks to receive')
+      }
+
+      send_block_hash = res.blocks[Object.keys(res.blocks)[0]]
+    }
 
     const block = await this.blocks.receive({
       key: private_key,
@@ -318,20 +342,20 @@ export default class Nano {
         count?: number,
         threshold?: string
       ) {
-        const getMulti =
-          (typeof accountOrAccounts as string | string[]) === 'array'
         // TODO: convert threshold from xrb to raw
-        return getMulti
-          ? rpc('accounts_pending', {
-              accounts: accountOrAccounts as string[],
-              threshold,
-              count: count.toString() || '1'
-            })
-          : rpc('pending', {
-              account: accountOrAccounts as string,
-              threshold,
-              count: count.toString() || '1'
-            })
+        if (Array.isArray(accountOrAccounts)) {
+          return rpc('accounts_pending', {
+            accounts: accountOrAccounts as string[],
+            threshold,
+            count: count.toString() || '1'
+          })
+        } else {
+          return rpc('pending', {
+            account: accountOrAccounts as string,
+            threshold,
+            count: count.toString() || '1'
+          })
+        }
       },
       async representative(account: string) {
         return rpc('account_representative', {

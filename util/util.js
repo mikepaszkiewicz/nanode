@@ -1,4 +1,4 @@
-import {Buffer} from 'buffer'
+const {Buffer} = require('buffer')
 
 /* Utility functions exported as static functions on NanoNode class */
 const {blake2b, blake2bInit, blake2bUpdate, blake2bFinal} = require('./blake2b')
@@ -198,7 +198,7 @@ exports.deterministicKey = function(seed, accountIndex) {
 }
 
 exports.accountPair = function(privKeyString) {
-  const privKey = Buffer.from(privKeyString)
+  const privKey = Buffer.from(privKeyString, 'hex')
   const pubKeyHex = Buffer.from(
     nacl.sign.keyPair.fromSecretKey(privKey).publicKey
   ).toString('hex')
