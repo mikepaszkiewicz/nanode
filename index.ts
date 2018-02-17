@@ -79,14 +79,14 @@ export default class Nano {
 
   //Top-level call: open block
   async open(
-    target_private_key: string,
+    private_key: string,
     representative?: string,
     send_block_hash?: string
   ) {
     const {log} = this
 
-    if (!target_private_key) {
-      throw new Error('Must pass target_private_key in arguments')
+    if (!private_key) {
+      throw new Error('Must pass private_key argument')
     }
 
     if (!representative) {
@@ -94,14 +94,14 @@ export default class Nano {
         'xrb_1nanode8ngaakzbck8smq6ru9bethqwyehomf79sae1k7xd47dkidjqzffeg'
     }
 
-    const {publicKey} = accountPair(target_private_key)
-    const work = await this.work.generate(publicKey)
+    const {publicKey} = accountPair(private_key)
+    const {work} = await this.work.generate(publicKey)
 
     const block = await this.block.open({
       previous: publicKey,
-      key: target_private_key,
+      key: private_key,
       source: send_block_hash,
-      work: work.work,
+      work,
       representative
     })
 
@@ -122,14 +122,14 @@ export default class Nano {
       throw new Error('Must pass private_key argument')
     }
 
-    const {frontier, work} = await this.generateLatestWork(private_key)
+    const {balance, frontier, work} = await this.generateLatestWork(private_key)
     const rai_to_send = await this.convert.toRaw(+amount * 1000, 'krai')
 
     const block = await this.block.send({
       key: private_key,
       // account: address,
       destination: recipient_wallet_address,
-      balance: account.balance,
+      balance,
       amount: rai_to_send.amount,
       previous: frontier,
       work
@@ -166,6 +166,10 @@ export default class Nano {
   async change(private_key: string, representative: string) {
     const {log} = this
 
+    if (!private_key) {
+      throw new Error('Must pass private_key argument')
+    }
+
     const {frontier, work} = await this.generateLatestWork(private_key)
 
     const block = await this.block.change({
@@ -182,11 +186,12 @@ export default class Nano {
 
   async generateLatestWork(private_key: string) {
     const {address} = accountPair(private_key)
-    const {frontier} = await this.account.info(address)
+    const {balance, frontier} = await this.account.info(address)
     const {work} = await this.work.generate(frontier)
 
     return {
       address,
+      balance,
       frontier,
       work
     }
@@ -204,12 +209,9 @@ export default class Nano {
         }
         return rpc('account_get', {key})
       },
-      async balance(account?: string) {
-        account = this.origin_address || account
+      async balance(account: string) {
         if (!account) {
-          throw new Error(
-            `Must pass origin_address to constructor, or account name to this method`
-          )
+          throw new Error(`Must supply account address argument`)
         }
         return rpc('account_balance', {account})
       },
@@ -218,12 +220,9 @@ export default class Nano {
           accounts
         })
       },
-      async block_count(account?: string) {
-        account = this.origin_address || account
+      async block_count(account: string) {
         if (!account) {
-          throw new Error(
-            `Must pass origin_address to constructor, or account name to this method`
-          )
+          throw new Error(`Must supply account address argument`)
         }
         return rpc('account_block_count', {
           account
@@ -235,11 +234,8 @@ export default class Nano {
         })
       },
       async history(account?: string, count?: string) {
-        account = this.origin_address || account
         if (!account) {
-          throw new Error(
-            `Must pass origin_address to constructor, or account name to this method`
-          )
+          throw new Error(`Must supply account address argument`)
         }
         return rpc('account_history', {
           account,
@@ -247,11 +243,8 @@ export default class Nano {
         }).then(res => res.data)
       },
       async info(account?: string) {
-        account = this.origin_address || account
         if (!account) {
-          throw new Error(
-            `Must pass origin_address to constructor, or account name to this method`
-          )
+          throw new Error(`Must supply account address argument`)
         }
         return rpc('account_info', {account}).then(account => {
           log(`(ACCOUNT) balance: ${account.balance}`)
@@ -269,11 +262,8 @@ export default class Nano {
         weight?: boolean,
         pending?: boolean
       ) {
-        account = this.origin_address || account
         if (!account) {
-          throw new Error(
-            `Must pass origin_address to constructor, or account name to this method`
-          )
+          throw new Error(`Must supply account address argument`)
         }
         return rpc('ledger', {
           account,
@@ -307,7 +297,7 @@ export default class Nano {
           account
         }).then(res => res.representative)
       },
-      async wieght(account: string) {
+      async weight(account: string) {
         return rpc('account_weight', {account}).then(res => res.weight)
       }
     }
