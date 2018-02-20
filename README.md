@@ -94,68 +94,68 @@ If you aren't sure about some of the arguments, they're available as types in yo
 
 if you only need to send and recieve NANO, **these methods should technically be the only ones you need**, per the examples above:
 
-* `Nano.open()`
-* `Nano.send()`
-* `Nano.receive()`
-* `Nano.change()`
+* `nano.open()`
+* `nano.send()`
+* `nano.receive()`
+* `nano.change()`
 
-### Account
+### Accounts
 
 Account methods take a single account string or in some cases, an array of accounts.
 
-* `Nano.account.get()`
-* `Nano.account.balance()`
-* `Nano.account.balances()`
-* `Nano.account.block_count()`
-* `Nano.account.frontiers()`
-* `Nano.account.history()`
-* `Nano.account.info()`
-* `Nano.account.key()`
-* `Nano.account.ledger()`
-* `Nano.account.pending()`
-* `Nano.account.representative()`
-* `Nano.account.weight()`
-
-### Block
-
-Block methods either require a block hash as a single argument, or a stringified block:
-
-* `Nano.block.account(block_hash)`
-* `Nano.block.count(block_hash)`
-* `Nano.block.chain(block_hash)`
-* `Nano.block.history(block_hash)`
-* `Nano.block.pending(block_hash)`
-* `Nano.block.change(block_string)`
-* `Nano.block.open(block_string)`
-* `Nano.block.publish(block_string)`
-* `Nano.block.receive(block_string)`
-* `Nano.block.send(block_string)`
+* `nano.accounts.get()`
+* `nano.accounts.balance()`
+* `nano.accounts.balances()`
+* `nano.accounts.block_count()`
+* `nano.accounts.frontiers()`
+* `nano.accounts.history()`
+* `nano.accounts.info()`
+* `nano.accounts.key()`
+* `nano.accounts.ledger()`
+* `nano.accounts.pending()`
+* `nano.accounts.representative()`
+* `nano.accounts.weight()`
 
 ### Blocks
 
-This utility method allows a block hash or array of block hashes -
+Has methods to get information about blocks:
 
-* `Nano.blocks.find()`
+* `nano.blocks.account(hash: string)`
+* `nano.blocks.count(byType?: boolean)`
+* `nano.blocks.chain(hash: string, count?: number)`
+* `nano.blocks.history(hash: string, count?: number)`
+* `nano.blocks.info(hashOrHahes: string | string[], details?: boolean)`
+* `nano.blocks.pending(hash: string)`
+* `nano.blocks.successors(block: string, count?: number)`
+
+Methods to construct blocks:
+
+* `nano.blocks.createOpen(block: OpenBlock)`
+* `nano.blocks.createSend(block: SendBlock)`
+* `nano.blocks.createReceive(block: ReceiveBlock)`
+* `nano.blocks.createChange(block: ChangeBlock)`
+
+And a method to publish a block to the network:
+
+* `nano.blocks.publish(block: string)`
 
 ### Convert
 
-The convert method allows you to convert krai, mrai, and rai to and from their raw values. Both take an amount and denomination.
+Allows you to convert `rai`, `krai`, and `mrai` amounts to and from their raw values.
 
-* `Nano.convert.toRaw(22, 'mrai')`
-* `Nano.convert.fromRaw(22, 'mrai')`
+* `nano.convert.toRaw(amount: string, denomination: 'rai' | 'krai' | 'mrai')`
+* `nano.convert.fromRaw(amount: string, denomination: 'rai' | 'krai' | 'mrai')`
 
 ### Work
 
-Exposes work methods to perform on hashes
+Allows you to generate and validate Proof of Work for a given block hash.
 
-* `Nano.work.generate(block_hash)`
-* `Nano.work.cancel(block_hash)`
-* `Nano.work.get(wallet, account)`
+* `nano.work.generate(hash: string)`
+* `nano.work.validate(work: string, hash: string)`
 
 ## Todos
 
 * Use BigNumber, etc. to allow passing numbers
-* Expose raw RPC method + types
 * TypeDoc site + add remaining method documentation
 * Better argument checking / error handling
 * Tests!

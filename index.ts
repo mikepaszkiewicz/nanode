@@ -148,7 +148,7 @@ export default class Nano {
       send_block_hash = res.blocks[0]
     }
 
-    const block = await this.blocks.open({
+    const block = await this.blocks.createOpen({
       previous: publicKey,
       key: private_key,
       source: send_block_hash,
@@ -180,7 +180,7 @@ export default class Nano {
     const {balance, frontier, work} = await this.generateLatestWork(private_key)
     const rai_to_send = await this.convert.toRaw(+amount * 1000, 'krai')
 
-    const block = await this.blocks.send({
+    const block = await this.blocks.createSend({
       key: private_key,
       // account: address,
       destination: recipient_wallet_address,
@@ -214,7 +214,7 @@ export default class Nano {
       send_block_hash = res.blocks[0]
     }
 
-    const block = await this.blocks.receive({
+    const block = await this.blocks.createReceive({
       key: private_key,
       previous: frontier,
       work,
@@ -236,7 +236,7 @@ export default class Nano {
 
     const {frontier, work} = await this.generateLatestWork(private_key)
 
-    const block = await this.blocks.change({
+    const block = await this.blocks.createChange({
       previous: frontier,
       representative,
       work,
@@ -378,7 +378,7 @@ export default class Nano {
           return res.account
         })
       },
-      async count(by_type?: string) {
+      async count(by_type?: boolean) {
         return by_type ? rpc('block_count_type', {}) : rpc('block_count', {})
       },
       async chain(block: string, count?: string) {
@@ -387,7 +387,7 @@ export default class Nano {
           count: count || '1'
         }).then(res => res.blocks)
       },
-      async change(block: ChangeBlock) {
+      async createChange(block: ChangeBlock) {
         return rpc('block_create', {
           type: 'change',
           ...block
@@ -399,11 +399,11 @@ export default class Nano {
       async history(hash: string, count?: string) {
         return rpc('history', {
           hash,
-          count: count || '0'
+          count: count || '1'
         })
       },
       //Get one or many block's information
-      async info(hashOrHashes: string | string[], details: boolean) {
+      async info(hashOrHashes: string | string[], details?: boolean) {
         const getMulti = (typeof hashOrHashes as string | string[]) === 'array'
         if (getMulti) {
           return details
@@ -419,7 +419,7 @@ export default class Nano {
           }).then(res => res.contents)
         }
       },
-      async open(block: OpenBlock) {
+      async createOpen(block: OpenBlock) {
         return rpc('block_create', {
           type: 'open',
           ...block
@@ -437,7 +437,7 @@ export default class Nano {
           return res
         })
       },
-      async receive(block: ReceiveBlock) {
+      async createReceive(block: ReceiveBlock) {
         return rpc('block_create', {
           type: 'receive',
           ...block
@@ -446,7 +446,7 @@ export default class Nano {
           return res
         })
       },
-      async send(block: SendBlock) {
+      async createSend(block: SendBlock) {
         return rpc('block_create', {
           type: 'send',
           ...block
@@ -471,8 +471,9 @@ export default class Nano {
   //Convert KRAI, MRAI, RAI to and from RAW
   get convert() {
     const {rpc} = this
+    type Denomination = 'rai' | 'krai' | 'mrai'
     return {
-      async toRaw(amount: number, denomination: 'krai' | 'mrai' | 'rai') {
+      async toRaw(amount: number, denomination: Denomination) {
         if (!amount) {
           throw new Error('Must pass amount to conversion call')
         }
@@ -480,7 +481,7 @@ export default class Nano {
           amount: amount.toString()
         })
       },
-      async fromRaw(amount: number, denomination: 'krai' | 'mrai' | 'rai') {
+      async fromRaw(amount: number, denomination: Denomination) {
         if (!amount) {
           throw new Error('Must pass amount to conversion call')
         }
