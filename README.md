@@ -19,25 +19,24 @@ Want to build with NANO, but not running a full node? [Sign up for node access a
 
 ## Usage
 
-This library is built with TypeScript, and I highly reccommend you take advantage of your code editor's Intellisense features. All fields on requests and responses for the RPC are strings - and for now, the same is true for this library.
+This library is built with TypeScript, and I highly reccommend you take advantage of your code editor's Intellisense features.
 
-The full code for these snippets can be found /examples directory
+Note: Due to the use of 128-bit integers, all numeric amounts must be provided as strings, and will be returned as strings.
 
 ### Connect
 
-Initiate the client with your API key and a valid RPC url. Optionally pass your address and private key to the constructor.
-
-Not sure what your private key is? Call `nano.get_deterministic_key()` with your account's seed to get all relevant account information.
+#### Nanode Node API
 
 ```typescript
-//examples/init.ts
 import Nano from 'nanode'
-const nano = new Nano({
-  api_key: process.env.API_KEY,
-  url: 'https://api.nanode.co',
-  origin_address: process.env.SENDER_WALLET, // wallet for the 'controlling' account
-  origin_key: process.env.SENDER_WALLET_PRIVATE_KEY // key for the 'controlling' account
-})
+const nano = new Nano({api_key: process.env.NANODE_API_KEY})
+```
+
+#### Your own Nano RPC server
+
+```typescript
+import Nano from 'nanode'
+const nano = new Nano({url: 'http://localhost:7076'})
 ```
 
 ### Open account
@@ -68,22 +67,20 @@ console.log(`Open block published with hash: ${hash}`)
 
 ### Send and receive
 
-Sending and receiving are simple one liners. For receive, we have to pass in the hash of the block we're receiving
+Sending and receiving are simple one liners. Note that the send amount must be a string, and the `receive()` method will receive the latest pending block for the receiving account.
 
 ```typescript
-//examples/send.ts, examples/receive.ts
-import Nano from './init'
+// Send from account 1
+const senderPrivateKey =
+  '801E6A1601D95FFDF8A0A355EE8615319CC7B8D9C9307CA14BACA437427D6D81'
+const receiverAddress =
+  'xrb_3nnz4k6kzmq5eseb9ekrybnscsb8romzhgwk1qyrzrabwt991q1jx7zb44m9'
+await nano.account(senderPrivateKey).send('0.01', receiverAddress)
 
-const wallet_addr =
-  'xrb_3hk1e77fbkr67fwzswc31so7zi76g7poek9fwu1jhqxrn3r9wiohwt5hi4p1'
-
-const hash = await Nano.send('0.01', wallet_addr)
-
-return await Nano.receive(
-  hash,
-  process.env.RECIPIENT_WALLET_PRIVATE_KEY,
-  wallet_addr
-)
+// Receive with account 2
+const receiverPrivateKey =
+  'DD6DA634FEAEC2C631481E59DB5D4CC1C410CF9292CDDB149CF60E2B39C45A97'
+await nano.account(receiverPrivateKey).receive()
 ```
 
 ## Full list of methods
@@ -135,7 +132,7 @@ Methods to construct blocks:
 * `nano.blocks.createReceive(block: ReceiveBlock)`
 * `nano.blocks.createChange(block: ChangeBlock)`
 
-And a method to publish a block to the network:
+And a method to publish a constructed block to the network:
 
 * `nano.blocks.publish(block: string)`
 
