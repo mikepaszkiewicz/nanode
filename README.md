@@ -1,6 +1,6 @@
-# Nano Client
+# Nano Client by [Nanode](https://www.nanode.co/)
 
-Dead simple, promise-based client for interacting and building services on top of the NANO network, a next-generation cryptocurrency created by Colin LeMahieu with nearly instant transactions and no fees. [Learn more on the official repo](https://nanode.co/node-api) ⚡️
+Dead simple, promise-based client for interacting and building services on top of the NANO network, a next-generation cryptocurrency created by Colin LeMahieu with nearly instant transactions and no fees. [Learn more in the Nanode docs.](https://www.nanode.co/docs) ⚡️
 
 If you've worked with NANO before, you probably have experienced it's learning curve. The community is amazingly helpful and growing fast,
 but the documentation and guides to working with it currently leave a lot to be desired.
@@ -30,7 +30,7 @@ Note: All "amount" parameters must be passed in as strings. ex: `"0.01"` is equi
 
 ```typescript
 import Nano from 'nanode'
-const nano = new Nano({api_key: process.env.NANODE_API_KEY})
+const nano = new Nano({apiKey: process.env.NANODE_API_KEY})
 ```
 
 ### Your own Nano RPC server
