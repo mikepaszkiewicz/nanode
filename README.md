@@ -42,12 +42,6 @@ const nano = new Nano({url: 'http://localhost:7076'})
 
 ## Working with accounts
 
-You can easily send, receive, get history and more by providing an account's private key:
-
-```typescript
-nano.account(PRIVATE_KEY)
-```
-
 ### Generate an account
 
 It's easy to generate a new random account. You'll get the account's private and public keys along with its address (`account` variable).
