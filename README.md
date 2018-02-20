@@ -10,6 +10,7 @@ this package is a wrapper around the official [RPC protocol](https://github.com/
 
 1. abstracts away some of the idiosyncracies and quirks with the RPC API,
 2. exposes some easy top-level account methods like `send()` and `recieve()` that do everything automatically so you don't have to know about Proof of Work, creating, signing, publishing, etc
+3. allows you to specify amounts in Nano without worrying about "raw" 128-bit integers
 
 This library works natively with the [Nanode Node API](https://www.nanode.co/node-api) as well as the [official Nano node software](https://github.com/nanocurrency/raiblocks), so there's no vendor lock-in.
 
