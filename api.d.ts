@@ -30,7 +30,7 @@ export type API = {
   account_history: {
     body: {
       account: string //target wallet
-      count?: string //return limit
+      count?: number //return limit
     }
     response: any
   }
@@ -102,7 +102,7 @@ export type API = {
   accounts_pending: {
     body: {
       accounts: string[]
-      count?: string
+      count?: number
     }
     response: {
       blocks: {
@@ -150,7 +150,7 @@ export type API = {
   block_count: {
     body: {}
     response: {
-      count: string
+      count: number
       unchecked: string
     }
   }
@@ -203,7 +203,7 @@ export type API = {
   chain: {
     body: {
       block: string
-      count: string
+      count: number
     }
   }
 
@@ -277,7 +277,7 @@ export type API = {
   history: {
     body: {
       hash: string
-      count: string
+      count: number
     }
     response: HistoryBlock[]
   }
@@ -285,10 +285,10 @@ export type API = {
   ledger: {
     body: {
       account: string
-      count?: string
-      representative?: string
-      weight?: string
-      pending?: string
+      count?: number
+      representative?: boolean
+      weight?: boolean
+      pending?: boolean
     }
     response: {
       accounts: {
@@ -310,7 +310,7 @@ export type API = {
   pending: {
     body: {
       account: string
-      count: string
+      count: number
     }
     response: {
       blocks: string[]
@@ -374,7 +374,7 @@ export type API = {
   successors: {
     body: {
       block: string
-      count: string
+      count: number
     }
     response: {
       blocks: string[]
@@ -419,7 +419,6 @@ export type HistoryBlock = {
 
 export type SendBlock = {
   key: string
-  account?: string
   destination: string
   balance: string
   amount: string
@@ -429,7 +428,6 @@ export type SendBlock = {
 
 export type ReceiveBlock = {
   key: string
-  account?: string
   previous: string
   work: string
   source: string

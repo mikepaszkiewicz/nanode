@@ -69,11 +69,11 @@ export default class Nano {
       open: (respresentative?: string, hash?: string) => {
         return this.open(private_key, respresentative, hash)
       },
-      receive: (hash?: string) => {
-        return this.receive(private_key, hash)
-      },
       send: (amount: string, address: string) => {
         return this.send(private_key, amount, address)
+      },
+      receive: (hash?: string) => {
+        return this.receive(private_key, hash)
       },
       change: (representative: string) => {
         return this.change(private_key, representative)
@@ -84,7 +84,7 @@ export default class Nano {
       blockCount: () => {
         return this.accounts.block_count(address)
       },
-      history: (count?: string) => {
+      history: (count?: number) => {
         return this.accounts.history(address, count)
       },
       info: () => {
@@ -93,19 +93,8 @@ export default class Nano {
       publicKey: () => {
         return this.accounts.key(address)
       },
-      ledger: (
-        count?: number,
-        representative?: boolean,
-        weight?: boolean,
-        pending?: boolean
-      ) => {
-        return this.accounts.ledger(
-          address,
-          count,
-          representative,
-          weight,
-          pending
-        )
+      ledger: (count?: number, details?: boolean) => {
+        return this.accounts.ledger(address, count, details)
       },
       pending: (count?: number, threshold?: string) => {
         return this.accounts.pending(address, count, threshold)
@@ -265,13 +254,11 @@ export default class Nano {
   get accounts() {
     const {rpc, log} = this
     return {
-      async get(key: string) {
-        if (!key) {
-          throw new Error(
-            `Must pass key to constructor, or account name to this method`
-          )
+      async get(publicKey: string) {
+        if (!publicKey) {
+          throw new Error(`Must supply publicKey argument`)
         }
-        return rpc('account_get', {key})
+        return rpc('account_get', {key: publicKey})
       },
       async balance(account: string) {
         if (!account) {
@@ -279,7 +266,7 @@ export default class Nano {
         }
         return rpc('account_balance', {account})
       },
-      async balances(accounts: string[], count?: string) {
+      async balances(accounts: string[]) {
         return rpc('accounts_balances', {
           accounts
         })
@@ -292,21 +279,21 @@ export default class Nano {
           account
         })
       },
-      async frontiers(accounts: string[], count?: string) {
+      async frontiers(accounts: string[]) {
         return rpc('accounts_frontiers', {
           accounts
         })
       },
-      async history(account?: string, count?: string) {
+      async history(account: string, count?: number) {
         if (!account) {
           throw new Error(`Must supply account address argument`)
         }
         return rpc('account_history', {
           account,
-          count: count || '1'
+          count: count || 1000
         }).then(res => res.data)
       },
-      async info(account?: string) {
+      async info(account: string) {
         if (!account) {
           throw new Error(`Must supply account address argument`)
         }
@@ -319,22 +306,16 @@ export default class Nano {
       async key(account: string) {
         return rpc('account_key', {account})
       },
-      async ledger(
-        account: string,
-        count?: number,
-        representative?: boolean,
-        weight?: boolean,
-        pending?: boolean
-      ) {
+      async ledger(account: string, count?: number, details?: boolean) {
         if (!account) {
           throw new Error(`Must supply account address argument`)
         }
         return rpc('ledger', {
           account,
-          count: count.toString() || '1',
-          representative: (!!representative).toString(),
-          weight: (!!weight).toString(),
-          pending: (!!pending).toString()
+          count: count || 1000,
+          representative: details,
+          weight: details,
+          pending: details
         })
       },
       async pending(account: string, count?: number, threshold?: string) {
@@ -342,7 +323,7 @@ export default class Nano {
         return rpc('pending', {
           account,
           threshold,
-          count: count.toString() || '1'
+          count: count || 1000
         })
       },
       async pendingMulti(
@@ -354,7 +335,7 @@ export default class Nano {
         return rpc('accounts_pending', {
           accounts,
           threshold,
-          count: count.toString() || '1'
+          count: count || 1000
         })
       },
       async representative(account: string) {
@@ -381,10 +362,10 @@ export default class Nano {
       async count(by_type?: boolean) {
         return by_type ? rpc('block_count_type', {}) : rpc('block_count', {})
       },
-      async chain(block: string, count?: string) {
+      async chain(block: string, count?: number) {
         return rpc('chain', {
           block,
-          count: count || '1'
+          count: count || 1000
         }).then(res => res.blocks)
       },
       async createChange(block: ChangeBlock) {
@@ -396,10 +377,10 @@ export default class Nano {
           return res
         })
       },
-      async history(hash: string, count?: string) {
+      async history(hash: string, count?: number) {
         return rpc('history', {
           hash,
-          count: count || '1'
+          count: count || 1000
         })
       },
       //Get one or many block's information
@@ -451,18 +432,14 @@ export default class Nano {
           type: 'send',
           ...block
         }).then(res => {
-          log(
-            `(BLOCK) Sending ${block.amount} from ${block.account} to ${
-              block.destination
-            }`
-          )
+          log(`(BLOCK) Sending ${block.amount} to ${block.destination}`)
           return res
         })
       },
       async successors(block: string, count?: number) {
         return rpc('successors', {
           block,
-          count: count ? count.toString() : '1'
+          count: count || 1000
         })
       }
     }
@@ -511,10 +488,10 @@ export default class Nano {
   get frontiers() {
     const {rpc} = this
     return {
-      async get(account: string, count?: string) {
+      async get(account: string, count?: number) {
         return rpc('frontiers', {
           account,
-          count: count || '1'
+          count: count || 1000
         })
       },
       async count(account: string) {
@@ -533,8 +510,8 @@ export default class Nano {
           return res
         })
       },
-      async expand(key: string) {
-        return rpc('key_expand', {key})
+      async expand(privateKey: string) {
+        return rpc('key_expand', {key: privateKey})
       }
     }
   }
@@ -563,7 +540,7 @@ export default class Nano {
     return this.rpc('representatives', {}).then(res => res.representatives)
   }
 
-  async get_deterministic_key(seed: string) {
+  async deterministicKey(seed: string, index?: number) {
     return this.rpc('deterministic_key', {
       seed,
       index: '0'

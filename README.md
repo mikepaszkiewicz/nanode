@@ -17,101 +17,110 @@ Want to build with NANO, but not running a full node? [Sign up for node access a
 
 `npm install nanode`
 
-## Usage
+## Getting Started
 
 This library is built with TypeScript, and I highly reccommend you take advantage of your code editor's Intellisense features.
 
 Note: Due to the use of 128-bit integers, all numeric amounts must be provided as strings, and will be returned as strings.
 
-### Connect
-
-#### Nanode Node API
+### Nanode Node API
 
 ```typescript
 import Nano from 'nanode'
 const nano = new Nano({api_key: process.env.NANODE_API_KEY})
 ```
 
-#### Your own Nano RPC server
+### Your own Nano RPC server
 
 ```typescript
 import Nano from 'nanode'
 const nano = new Nano({url: 'http://localhost:7076'})
 ```
 
-### Open account
+## Working with accounts
 
-Now that we're connected, we need to 'open' the account. Opening an account is a bit of a catch-22 - it requires any amount to be sent to the address from a funded account before account is actually open.
+You can easily send, receive, get history and more by providing an account's private key:
+
+`nano.account(PRIVATE_KEY)`
+
+### Generate an account
+
+It's easy to generate a new random account. You'll get the account's private and public keys along with its address (`account` variable).
 
 ```typescript
-//examples/open.ts
-
-import Nano from './init'
-//create a new key
-const target = await Nano.key.create()
-
-console.log(`Initializing account ${target.account} with funds..`)
-
-//send new account init funds from our walet
-const hash = await Nano.send('0.01', target.account)
-
-//open block with send's hash
-const hash = await Nano.open(
-  hash,
-  process.env.DEFAULT_REP,
-  target.private,
-  target.public
-)
-console.log(`Open block published with hash: ${hash}`)
+const {private, public, account} = await nano.key.create()
 ```
 
-### Send and receive
+### Open account
 
-Sending and receiving are simple one liners. Note that the send amount must be a string, and the `receive()` method will receive the latest pending block for the receiving account.
+In order to open an account and let the network know it exists, we'll need publish an `open` block. An account can't be opened with zero balance, so we'll first need to send some Nano to our account's address from our own wallet or [NanoFaucet](https://www.nanofaucet.org/), then call `open()`.
 
 ```typescript
-// Send from account 1
-const senderPrivateKey =
-  '801E6A1601D95FFDF8A0A355EE8615319CC7B8D9C9307CA14BACA437427D6D81'
-const receiverAddress =
-  'xrb_3nnz4k6kzmq5eseb9ekrybnscsb8romzhgwk1qyrzrabwt991q1jx7zb44m9'
-await nano.account(senderPrivateKey).send('0.01', receiverAddress)
+await nano.account(PRIVATE_KEY).open()
+```
 
-// Receive with account 2
-const receiverPrivateKey =
-  'DD6DA634FEAEC2C631481E59DB5D4CC1C410CF9292CDDB149CF60E2B39C45A97'
-await nano.account(receiverPrivateKey).receive()
+### Send funds
+
+```typescript
+await nano.account(PRIVATE_KEY).send('0.01', RECIPIENT_ADDRESS)
+```
+
+### Receive funds
+
+The `receive()` method will automatically receive the latest pending block for the given account.
+
+```typescript
+await nano.account(PRIVATE_KEY).receive()
 ```
 
 ## Full list of methods
 
-If you aren't sure about some of the arguments, they're available as types in your editor, or in the official RPC guide. Full TypeDoc documentation is on the way!
+All methods return native or Bluebird promises and are fully compatible with `async/await`.
 
-### Top-level calls
+### Working with a specific account
 
-if you only need to send and recieve NANO, **these methods should technically be the only ones you need**, per the examples above:
+If you're just looking to transact with Nano, these methods will cover 90% of your use case.
 
-* `nano.open()`
-* `nano.send()`
-* `nano.receive()`
-* `nano.change()`
+`const account = nano.account(PRIVATE_KEY)`
+
+* `account.open(representative?: string, hash?: string)`
+* `account.send(amount: string, address: string)`
+* `account.receive(hash?: string)`
+* `account.change(representative: string)`
+* `account.balance()`
+* `account.blockCount()`
+* `account.history(count?: number)`
+* `account.info()`
+* `account.publicKey()`
+* `account.ledger(count?: number, details?: boolean)`
+* `account.pending(count?: number, threshold?: string)`
+* `account.representative()`
+* `account.weight()`
+
+### Keys
+
+Used for generating accounts and extrapolating public keys/addresses from private keys.
+
+* `nano.key.create()`
+* `nano.key.expand(privateKey: string)`
 
 ### Accounts
 
 Account methods take a single account string or in some cases, an array of accounts.
 
-* `nano.accounts.get()`
-* `nano.accounts.balance()`
-* `nano.accounts.balances()`
-* `nano.accounts.block_count()`
-* `nano.accounts.frontiers()`
-* `nano.accounts.history()`
-* `nano.accounts.info()`
-* `nano.accounts.key()`
-* `nano.accounts.ledger()`
-* `nano.accounts.pending()`
-* `nano.accounts.representative()`
-* `nano.accounts.weight()`
+* `nano.accounts.get(publicKey: string)`
+* `nano.accounts.balance(account: string)`
+* `nano.accounts.balances(accounts: string[])`
+* `nano.accounts.block_count(account: string)`
+* `nano.accounts.frontiers(accounts: string[])`
+* `nano.accounts.history(account: string, count?: number)`
+* `nano.accounts.info(account: string)`
+* `nano.accounts.key(account: string)`
+* `nano.accounts.ledger(account: string, count?: number, details?: boolean)`
+* `nano.accounts.pending(account: string, count?: number, threshold?: string)`
+* `nano.accounts.pendingMulti(accounts: string[], count?: number, threshold?: string)`
+* `nano.accounts.representative(account: string)`
+* `nano.accounts.weight(account: string)`
 
 ### Blocks
 
@@ -149,6 +158,22 @@ Allows you to generate and validate Proof of Work for a given block hash.
 
 * `nano.work.generate(hash: string)`
 * `nano.work.validate(work: string, hash: string)`
+
+### Other
+
+* `nano.available()`
+* `nano.representatives()`
+* `nano.deterministicKey(seed: string, index?: number)`
+* `nano.minimumReceive.get()`
+* `nano.minimumReceive.set(amount: string)`
+
+## Calling RPC directly
+
+If there's a method missing, or if you prefer to call RPC directly, you can use `nano.rpc`. You'll still get the full benefit of type checking and return types for applicable RPC calls.
+
+```typescript
+await nano.rpc('account_info', {account})
+```
 
 ## Todos
 
