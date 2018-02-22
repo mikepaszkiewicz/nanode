@@ -61,7 +61,7 @@ await nano.account(PRIVATE_KEY).open()
 ### Send funds
 
 ```typescript
-await nano.account(PRIVATE_KEY).send('0.01', RECIPIENT_ADDRESS)
+await nano.account(PRIVATE_KEY).send(0.01, RECIPIENT_ADDRESS)
 ```
 
 ### Receive funds
