@@ -1,8 +1,7 @@
 {
   "name": "nanode",
   "version": "1.0.1",
-  "description":
-    "Dead simple, promise-based client for interacting and building services on top of the NANO network.",
+  "description": "Dead simple, promise-based client for interacting and building services on top of the NANO network.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -21,8 +20,10 @@
   },
   "homepage": "https://github.com/mikepaszkiewicz/nanode#readme",
   "dependencies": {
+    "@types/bignumber.js": "5.0.0",
     "@types/node": "^9.4.0",
     "axios": "^0.16.2",
+    "bignumber.js": "6.0.0",
     "dotenv": "^5.0.0",
     "moment": "^2.20.1",
     "typescript": "^2.4.0"
