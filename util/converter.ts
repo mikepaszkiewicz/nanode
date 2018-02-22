@@ -3,7 +3,7 @@ import BigNumber from 'bignumber.js'
 type NanoUnit = 'raw' | 'NANO' | 'XRB' | 'mrai' | 'krai' | 'rai'
 
 const Converter = {
-  unit(input: string, input_unit: NanoUnit, output_unit: NanoUnit) {
+  unit(input: string | number, input_unit: NanoUnit, output_unit: NanoUnit) {
     let value = new BigNumber(input.toString())
 
     // Step 1: to RAW

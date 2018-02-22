@@ -85,7 +85,7 @@ const account = nano.account(PRIVATE_KEY)
 ```
 
 * `account.open(representative?: string, hash?: string)`
-* `account.send(amount: string, address: string)`
+* `account.send(nanoAmount: string | number, address: string)`
 * `account.receive(hash?: string)`
 * `account.change(representative: string)`
 * `account.balance()`
@@ -94,7 +94,7 @@ const account = nano.account(PRIVATE_KEY)
 * `account.info()`
 * `account.publicKey()`
 * `account.ledger(count?: number, details?: boolean)`
-* `account.pending(count?: number, threshold?: string)`
+* `account.pending(count?: number, minNanoThreshold?: string | number)`
 * `account.representative()`
 * `account.weight()`
 
@@ -112,14 +112,14 @@ Account methods take a single account string or in some cases, an array of accou
 * `nano.accounts.get(publicKey: string)`
 * `nano.accounts.balance(account: string)`
 * `nano.accounts.balances(accounts: string[])`
-* `nano.accounts.block_count(account: string)`
+* `nano.accounts.blockCount(account: string)`
 * `nano.accounts.frontiers(accounts: string[])`
 * `nano.accounts.history(account: string, count?: number)`
 * `nano.accounts.info(account: string)`
 * `nano.accounts.key(account: string)`
 * `nano.accounts.ledger(account: string, count?: number, details?: boolean)`
-* `nano.accounts.pending(account: string, count?: number, threshold?: string)`
-* `nano.accounts.pendingMulti(accounts: string[], count?: number, threshold?: string)`
+* `nano.accounts.pending(account: string, count?: number, minNanoThreshold?: string | number)`
+* `nano.accounts.pendingMulti(accounts: string[], count?: number, minNanoThreshold?: string | number)`
 * `nano.accounts.representative(account: string)`
 * `nano.accounts.weight(account: string)`
 
@@ -150,7 +150,7 @@ And a method to publish a constructed block to the network:
 
 Allows you to convert `rai`, `krai`, and `mrai` amounts to and from their raw values.
 
-* `nano.convert.toRaw(amount: string, denomination: 'rai' | 'krai' | 'mrai')`
+* `nano.convert.toRaw(amount: string | number, denomination: 'rai' | 'krai' | 'mrai')`
 * `nano.convert.fromRaw(amount: string, denomination: 'rai' | 'krai' | 'mrai')`
 
 ### Work
@@ -166,7 +166,7 @@ Allows you to generate and validate Proof of Work for a given block hash.
 * `nano.representatives()`
 * `nano.deterministicKey(seed: string, index?: number)`
 * `nano.minimumReceive.get()`
-* `nano.minimumReceive.set(amount: string)`
+* `nano.minimumReceive.set(nanoAmount: string | number)`
 
 ## Calling RPC directly
 

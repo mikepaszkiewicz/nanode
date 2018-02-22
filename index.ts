@@ -71,7 +71,7 @@ export default class Nano {
       open: (respresentative?: string, hash?: string) => {
         return this.open(private_key, respresentative, hash)
       },
-      send: (amount: string, address: string) => {
+      send: (amount: string | number, address: string) => {
         return this.send(private_key, amount, address)
       },
       receive: (hash?: string) => {
@@ -81,7 +81,7 @@ export default class Nano {
         return this.change(private_key, representative)
       },
       balance: () => {
-        return this.accounts.balance(address)
+        return this.accounts.rawBalance(address)
       },
       blockCount: () => {
         return this.accounts.blockCount(address)
@@ -157,7 +157,7 @@ export default class Nano {
   }
 
   //Top-level call: send block
-  async send(privateKey: string, amount: string, toAddress: string) {
+  async send(privateKey: string, amount: string | number, toAddress: string) {
     const {log} = this
 
     if (!privateKey) {
@@ -165,20 +165,20 @@ export default class Nano {
     }
 
     const {balance, frontier, work} = await this.generateLatestWork(privateKey)
-    const sendRaw = this.convert.toRaw(+amount * 1000, 'krai')
+    const amountRaw = Converter.unit(amount, 'NANO', 'raw')
 
     const block = await this.blocks.createSend({
       key: privateKey,
       // account: address,
       destination: toAddress,
       balance,
-      amount: sendRaw.amount,
+      amount: amountRaw,
       previous: frontier,
       work
     })
 
     const result = await this.blocks.publish(block.block)
-    log(`Sent ${sendRaw} NANO to ${toAddress}!`)
+    log(`Sent ${amountRaw} NANO to ${toAddress}!`)
     return result.hash
   }
 
@@ -255,8 +255,13 @@ export default class Nano {
       async get(publicKey: string) {
         return rpc('account_get', {key: publicKey})
       },
-      async balance(account: string) {
+      async rawBalance(account: string) {
         return rpc('account_balance', {account})
+      },
+      async nanoBalance(account: string) {
+        return rpc('account_balance', {account}).then(balance =>
+          Converter.unit(balance.balance, 'raw', 'NANO')
+        )
       },
       async balances(accounts: string[]) {
         return rpc('accounts_balances', {accounts})
@@ -292,23 +297,26 @@ export default class Nano {
           pending: details
         })
       },
-      async pending(account: string, count?: number, threshold?: string) {
+      async pending(
+        account: string,
+        count?: number,
+        minNanoThreshold?: string | number
+      ) {
         // TODO: convert threshold from xrb to raw
         return rpc('pending', {
           account,
-          threshold,
+          threshold: Converter.unit(minNanoThreshold || 0, 'NANO', 'raw'),
           count: count || 1000
         })
       },
       async pendingMulti(
         accounts: string[],
         count?: number,
-        threshold?: string
+        minNanoThreshold?: string | number
       ) {
-        // TODO: convert threshold from xrb to raw
         return rpc('accounts_pending', {
           accounts,
-          threshold,
+          threshold: Converter.unit(minNanoThreshold || 0, 'NANO', 'raw'),
           count: count || 1000
         })
       },
@@ -323,7 +331,6 @@ export default class Nano {
     }
   }
 
-  //General block related calls
   get blocks() {
     const {rpc, log} = this
 
@@ -422,7 +429,7 @@ export default class Nano {
   get convert() {
     type Denomination = 'rai' | 'krai' | 'mrai'
     return {
-      toRaw(amount: string, denomination: Denomination) {
+      toRaw(amount: string | number, denomination: Denomination) {
         return Converter.unit(amount, denomination, 'raw')
       },
       fromRaw(amount: string, denomination: Denomination) {
@@ -507,10 +514,10 @@ export default class Nano {
       get() {
         return rpc('receive_minimum')
       },
-      set(amount: string) {
-        return rpc('receive_minimum_set', {amount}).then(
-          res => res.success === ''
-        )
+      set(nanoAmount: string | number) {
+        return rpc('receive_minimum_set', {
+          amount: Converter.unit(nanoAmount, 'NANO', 'raw')
+        }).then(res => res.success === '')
       }
     }
   }
