@@ -4,6 +4,10 @@ import Converter from './util/converter'
 
 import {API, SendBlock, ReceiveBlock, OpenBlock, ChangeBlock} from './api'
 
+export const NanodeRepresentative =
+  'xrb_1nanode8ngaakzbck8smq6ru9bethqwyehomf79sae1k7xd47dkidjqzffeg'
+export const BounceAddress = ''
+
 export type RPCClient = (params: any) => Promise<any>
 function createAPI<API extends {[action: string]: any} = any>(
   rpcClient: RPCClient
@@ -80,8 +84,11 @@ export default class Nano {
       change: (representative: string) => {
         return this.change(private_key, representative)
       },
-      balance: () => {
+      rawBalance: () => {
         return this.accounts.rawBalance(address)
+      },
+      nanoBalance: () => {
+        return this.accounts.nanoBalance(address)
       },
       blockCount: () => {
         return this.accounts.blockCount(address)
@@ -123,8 +130,7 @@ export default class Nano {
     }
 
     if (!representative) {
-      representative =
-        'xrb_1nanode8ngaakzbck8smq6ru9bethqwyehomf79sae1k7xd47dkidjqzffeg'
+      representative = NanodeRepresentative
     }
 
     const {address, publicKey} = accountPair(privateKey)
@@ -463,12 +469,23 @@ export default class Nano {
 
   get key() {
     const {rpc} = this
+
+    // The word 'private' is reserved in JS so we use this function
+    // to get around that, and to make 'address' more clear
+    function convertKeyObj(keyObj: API['key_create']['response']) {
+      return {
+        privateKey: keyObj.private,
+        publicKey: keyObj.public,
+        address: keyObj.account
+      }
+    }
+
     return {
       create() {
-        return rpc('key_create')
+        return rpc('key_create').then(convertKeyObj)
       },
       expand(privateKey: string) {
-        return rpc('key_expand', {key: privateKey})
+        return rpc('key_expand', {key: privateKey}).then(convertKeyObj)
       }
     }
   }

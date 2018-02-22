@@ -44,10 +44,10 @@ const nano = new Nano({url: 'http://localhost:7076'})
 
 ### Generate an account
 
-It's easy to generate a new random account. You'll get the account's private and public keys along with its address (`account` variable).
+It's easy to generate a new random account. You'll get the account's private and public keys along with its address.
 
 ```typescript
-const {private, public, account} = await nano.key.create()
+const {privateKey, publicKey, address} = await nano.key.create()
 ```
 
 ### Open account
@@ -88,7 +88,8 @@ const account = nano.account(PRIVATE_KEY)
 * `account.send(nanoAmount: string | number, address: string)`
 * `account.receive(hash?: string)`
 * `account.change(representative: string)`
-* `account.balance()`
+* `account.rawBalance()`
+* `account.nanoBalance()`
 * `account.blockCount()`
 * `account.history(count?: number)`
 * `account.info()`
@@ -178,7 +179,5 @@ await nano.rpc('account_info', {account})
 
 ## Todos
 
-* Use BigNumber, etc. to allow passing numbers
-* TypeDoc site + add remaining method documentation
-* Better argument checking / error handling
+* TypeDoc site + add remaining method types
 * Tests!
