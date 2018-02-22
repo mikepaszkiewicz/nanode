@@ -1,5 +1,6 @@
 import axios from 'axios'
 const {accountPair} = require('./util/util.js')
+import Converter from './util/converter'
 
 import {API, SendBlock, ReceiveBlock, OpenBlock, ChangeBlock} from './api'
 
@@ -9,9 +10,9 @@ function createAPI<API extends {[action: string]: any} = any>(
 ) {
   return async function callRPC<Action extends keyof API>(
     action: Action,
-    body: API[Action]['body']
+    body?: API[Action]['body']
   ): Promise<API[Action]['response']> {
-    const params = Object.assign({}, body, {action})
+    const params = Object.assign({}, body || {}, {action})
     return rpcClient(params)
   }
 }
@@ -46,6 +47,7 @@ export default class Nano {
 
   constructor(options: NanoConstructorOptions) {
     this.debug = !!options.debug
+
     if (options.rpcClient) {
       this.rpc = createAPI<API>(options.rpcClient)
     } else {
@@ -82,7 +84,7 @@ export default class Nano {
         return this.accounts.balance(address)
       },
       blockCount: () => {
-        return this.accounts.block_count(address)
+        return this.accounts.blockCount(address)
       },
       history: (count?: number) => {
         return this.accounts.history(address, count)
@@ -110,14 +112,14 @@ export default class Nano {
 
   //Top-level call: open block
   async open(
-    private_key: string,
+    privateKey: string,
     representative?: string,
-    send_block_hash?: string
+    sendBlockHash?: string
   ) {
     const {log} = this
 
-    if (!private_key) {
-      throw new Error('Must pass private_key argument')
+    if (!privateKey) {
+      throw new Error('Must pass privateKey argument')
     }
 
     if (!representative) {
@@ -125,22 +127,22 @@ export default class Nano {
         'xrb_1nanode8ngaakzbck8smq6ru9bethqwyehomf79sae1k7xd47dkidjqzffeg'
     }
 
-    const {address, publicKey} = accountPair(private_key)
+    const {address, publicKey} = accountPair(privateKey)
     const {work} = await this.work.generate(publicKey)
 
-    if (!send_block_hash) {
+    if (!sendBlockHash) {
       const res = await this.accounts.pending(address, 1)
       if (!res.blocks || res.blocks.length === 0) {
         throw new Error('This account has no pending blocks to receive')
       }
 
-      send_block_hash = res.blocks[0]
+      sendBlockHash = res.blocks[0]
     }
 
     const block = await this.blocks.createOpen({
       previous: publicKey,
-      key: private_key,
-      source: send_block_hash,
+      key: privateKey,
+      source: sendBlockHash,
       work,
       representative
     })
@@ -155,81 +157,77 @@ export default class Nano {
   }
 
   //Top-level call: send block
-  async send(
-    private_key: string,
-    amount: string,
-    recipient_wallet_address: string
-  ) {
+  async send(privateKey: string, amount: string, toAddress: string) {
     const {log} = this
 
-    if (!private_key) {
+    if (!privateKey) {
       throw new Error('Must pass private_key argument')
     }
 
-    const {balance, frontier, work} = await this.generateLatestWork(private_key)
-    const rai_to_send = await this.convert.toRaw(+amount * 1000, 'krai')
+    const {balance, frontier, work} = await this.generateLatestWork(privateKey)
+    const sendRaw = this.convert.toRaw(+amount * 1000, 'krai')
 
     const block = await this.blocks.createSend({
-      key: private_key,
+      key: privateKey,
       // account: address,
-      destination: recipient_wallet_address,
+      destination: toAddress,
       balance,
-      amount: rai_to_send.amount,
+      amount: sendRaw.amount,
       previous: frontier,
       work
     })
 
     const result = await this.blocks.publish(block.block)
-    log(`Sent ${rai_to_send} NANO to ${recipient_wallet_address}!`)
+    log(`Sent ${sendRaw} NANO to ${toAddress}!`)
     return result.hash
   }
 
   //Top-level call: receive block
-  async receive(private_key: string, send_block_hash?: string) {
+  async receive(privateKey: string, sendBlockHash?: string) {
     const {log} = this
 
-    if (!private_key) {
-      throw new Error('Must pass private_key argument')
+    if (!privateKey) {
+      throw new Error('Must pass privateKey argument')
     }
 
-    const {address, frontier, work} = await this.generateLatestWork(private_key)
+    const {address, frontier, work} = await this.generateLatestWork(privateKey)
 
-    if (!send_block_hash) {
+    if (!sendBlockHash) {
       const res = await this.accounts.pending(address, 1)
       if (!res.blocks || res.blocks.length === 0) {
         throw new Error('This account has no pending blocks to receive')
       }
 
-      send_block_hash = res.blocks[0]
+      sendBlockHash = res.blocks[0]
     }
 
     const block = await this.blocks.createReceive({
-      key: private_key,
+      key: privateKey,
       previous: frontier,
       work,
-      source: send_block_hash
+      source: sendBlockHash
     })
 
     const result = await this.blocks.publish(block.block)
-    log(`Received block ${send_block_hash} to wallet ${address}!`)
+    log(`Received block ${sendBlockHash} to wallet ${address}!`)
     return result
   }
 
   //Top-level call: change block
-  async change(private_key: string, representative: string) {
+  async change(privateKey: string, representative: string) {
     const {log} = this
 
-    if (!private_key) {
-      throw new Error('Must pass private_key argument')
+    if (!privateKey) {
+      throw new Error('Must pass privateKey argument')
     }
 
-    const {frontier, work} = await this.generateLatestWork(private_key)
+    const {frontier, work} = await this.generateLatestWork(privateKey)
 
     const block = await this.blocks.createChange({
       previous: frontier,
       representative,
       work,
-      key: private_key
+      key: privateKey
     })
 
     const result = await this.blocks.publish(block.block)
@@ -237,8 +235,8 @@ export default class Nano {
     return result
   }
 
-  async generateLatestWork(private_key: string) {
-    const {address} = accountPair(private_key)
+  async generateLatestWork(privateKey: string) {
+    const {address} = accountPair(privateKey)
     const {balance, frontier} = await this.accounts.info(address)
     const {work} = await this.work.generate(frontier)
 
@@ -255,48 +253,27 @@ export default class Nano {
     const {rpc, log} = this
     return {
       async get(publicKey: string) {
-        if (!publicKey) {
-          throw new Error(`Must supply publicKey argument`)
-        }
         return rpc('account_get', {key: publicKey})
       },
       async balance(account: string) {
-        if (!account) {
-          throw new Error(`Must supply account address argument`)
-        }
         return rpc('account_balance', {account})
       },
       async balances(accounts: string[]) {
-        return rpc('accounts_balances', {
-          accounts
-        })
+        return rpc('accounts_balances', {accounts})
       },
-      async block_count(account: string) {
-        if (!account) {
-          throw new Error(`Must supply account address argument`)
-        }
-        return rpc('account_block_count', {
-          account
-        })
+      async blockCount(account: string) {
+        return rpc('account_block_count', {account})
       },
       async frontiers(accounts: string[]) {
-        return rpc('accounts_frontiers', {
-          accounts
-        })
+        return rpc('accounts_frontiers', {accounts})
       },
       async history(account: string, count?: number) {
-        if (!account) {
-          throw new Error(`Must supply account address argument`)
-        }
         return rpc('account_history', {
           account,
           count: count || 1000
-        }).then(res => res.data)
+        }).then(res => res.history)
       },
       async info(account: string) {
-        if (!account) {
-          throw new Error(`Must supply account address argument`)
-        }
         return rpc('account_info', {account}).then(account => {
           log(`(ACCOUNT) balance: ${account.balance}`)
           log(`(ACCOUNT) latest hash: ${account.frontier}`)
@@ -307,9 +284,6 @@ export default class Nano {
         return rpc('account_key', {account})
       },
       async ledger(account: string, count?: number, details?: boolean) {
-        if (!account) {
-          throw new Error(`Must supply account address argument`)
-        }
         return rpc('ledger', {
           account,
           count: count || 1000,
@@ -360,7 +334,7 @@ export default class Nano {
         })
       },
       async count(by_type?: boolean) {
-        return by_type ? rpc('block_count_type', {}) : rpc('block_count', {})
+        return by_type ? rpc('block_count_type') : rpc('block_count')
       },
       async chain(block: string, count?: number) {
         return rpc('chain', {
@@ -445,72 +419,52 @@ export default class Nano {
     }
   }
 
-  //Convert KRAI, MRAI, RAI to and from RAW
   get convert() {
-    const {rpc} = this
     type Denomination = 'rai' | 'krai' | 'mrai'
     return {
-      async toRaw(amount: number, denomination: Denomination) {
-        if (!amount) {
-          throw new Error('Must pass amount to conversion call')
-        }
-        return rpc(`${denomination}_to_raw` as any, {
-          amount: amount.toString()
-        })
+      toRaw(amount: string, denomination: Denomination) {
+        return Converter.unit(amount, denomination, 'raw')
       },
-      async fromRaw(amount: number, denomination: Denomination) {
-        if (!amount) {
-          throw new Error('Must pass amount to conversion call')
-        }
-        return rpc(`${denomination}_from_raw` as any, {
-          amount: amount.toString()
-        })
+      fromRaw(amount: string, denomination: Denomination) {
+        return Converter.unit(amount, 'raw', denomination)
       }
     }
   }
 
-  //get, count delegators
-  //TODO: could be a single method
   get delegators() {
     const {rpc} = this
     return {
-      async get(account: string) {
-        return rpc('delegators', {account}).then(res => res)
+      get(account: string) {
+        return rpc('delegators', {account}).then(res => res.delegators)
       },
-      async count(account: string) {
+      count(account: string) {
         return rpc('delegators_count', {account}).then(res => res.count)
       }
     }
   }
 
-  //Get, count frontiers
-  //TODO: could be a single method
   get frontiers() {
     const {rpc} = this
     return {
-      async get(account: string, count?: number) {
+      get(account: string, count?: number) {
         return rpc('frontiers', {
           account,
           count: count || 1000
         })
       },
-      async count(account: string) {
-        return rpc('frontier_count', {account}).then(res => res.count)
+      count() {
+        return rpc('frontier_count').then(res => res.count)
       }
     }
   }
 
-  //Create and expand keys
   get key() {
-    const {rpc, log} = this
+    const {rpc} = this
     return {
-      async create() {
-        return rpc('key_create', {}).then(res => {
-          log(`Created key ${res}`)
-          return res
-        })
+      create() {
+        return rpc('key_create')
       },
-      async expand(privateKey: string) {
+      expand(privateKey: string) {
         return rpc('key_expand', {key: privateKey})
       }
     }
@@ -521,26 +475,26 @@ export default class Nano {
     const {rpc, log} = this
 
     return {
-      async generate(hash: string) {
+      generate(hash: string) {
         return rpc('work_generate', {hash}).then(result => {
           log(`(WORK) generated PoW: ${result.work}`)
           return result
         })
       },
-      async validate(work: string, hash: string) {
+      validate(work: string, hash: string) {
         return rpc('work_validate', {work, hash})
       }
     }
   }
 
-  async available() {
-    return this.rpc('available_supply', {}).then(res => res.available)
+  available() {
+    return this.rpc('available_supply').then(res => res.available)
   }
-  async representatives() {
-    return this.rpc('representatives', {}).then(res => res.representatives)
+  representatives() {
+    return this.rpc('representatives').then(res => res.representatives)
   }
 
-  async deterministicKey(seed: string, index?: number) {
+  deterministicKey(seed: string, index?: number) {
     return this.rpc('deterministic_key', {
       seed,
       index: '0'
@@ -550,13 +504,13 @@ export default class Nano {
   get minimumReceive() {
     const {rpc} = this
     return {
-      async get() {
-        return rpc('receive_minimum', {})
+      get() {
+        return rpc('receive_minimum')
       },
-      async set(amount: string) {
-        return rpc('receive_minimum_set', {
-          amount
-        }).then(res => res.success === '')
+      set(amount: string) {
+        return rpc('receive_minimum_set', {amount}).then(
+          res => res.success === ''
+        )
       }
     }
   }

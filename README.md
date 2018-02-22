@@ -80,7 +80,9 @@ All methods return native or Bluebird promises and are fully compatible with `as
 
 If you're just looking to transact with Nano, these methods will cover 90% of your use case.
 
-`const account = nano.account(PRIVATE_KEY)`
+```typescript
+const account = nano.account(PRIVATE_KEY)
+```
 
 * `account.open(representative?: string, hash?: string)`
 * `account.send(amount: string, address: string)`

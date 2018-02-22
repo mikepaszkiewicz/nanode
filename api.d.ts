@@ -32,7 +32,9 @@ export type API = {
       account: string //target wallet
       count?: number //return limit
     }
-    response: any
+    response: {
+      history: HistoryBlock[]
+    }
   }
 
   account_info: {
@@ -232,7 +234,11 @@ export type API = {
       seed: string
       index: string
     }
-    response: any
+    response: {
+      private: string
+      public: string
+      account: string
+    }
   }
 
   frontiers: {
