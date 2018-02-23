@@ -1,6 +1,6 @@
 require('dotenv').config()
 
-import Nano, {NanodeRepresentative} from '../index'
+import {Nano, NanodeRepresentative} from '../.'
 
 const nano = new Nano({
   apiKey: process.env.API_KEY,

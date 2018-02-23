@@ -4,7 +4,7 @@
     "lib": ["es2015"],
     "alwaysStrict": true,
     "sourceMap": true,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "suppressImplicitAnyIndexErrors": true,
@@ -12,10 +12,11 @@
     "target": "es5",
     "experimentalDecorators": true,
     "module": "commonjs",
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "suppressExcessPropertyErrors": true,
     "declaration": true
   },
-  "include": ["index.ts"],
+  "include": ["src/index.ts"],
   "exclude": ["node_modules"]
 }

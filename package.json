@@ -2,12 +2,14 @@
   "name": "nanode",
   "version": "2.1.0",
   "description": "Dead simple, promise-based client for interacting and building services on top of the NANO network.",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.js",
   "types": "./dist/index.d.ts",
   "scripts": {
+    "build": "rollup -c",
     "debug": "ts-node --inspect-brk=9229 --debug examples/accounts.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublish": "tsc && copyfiles util/*.js dist"
+    "prepack": "rollup -c"
   },
   "repository": {
     "type": "git",
@@ -21,17 +23,20 @@
   "homepage": "https://github.com/mikepaszkiewicz/nanode#readme",
   "dependencies": {
     "axios": "^0.16.2",
-    "bignumber.js": "6.0.0"
+    "bignumber.js": "6.0.0",
+    "buffer": "^5.1.0"
   },
   "devDependencies": {
-    "@types/node": "9.4.6",
+    "@types/node": "^9.4.6",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
-    "copyfiles": "1.2.0",
-    "dotenv": "5.0.0",
-    "typescript": "2.7.2"
+    "rollup": "^0.56.2",
+    "rollup-plugin-commonjs": "^8.3.0",
+    "rollup-plugin-typescript2": "^0.11.1",
+    "typescript": "^2.7.2",
+    "dotenv": "^5.0.0"
   }
 }

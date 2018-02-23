@@ -1,5 +1,5 @@
 import axios from 'axios'
-const {accountPair} = require('./util/util.js')
+import {accountPair} from './util/util'
 import Converter from './util/converter'
 
 import {API, SendBlock, ReceiveBlock, OpenBlock, ChangeBlock} from './api'
@@ -45,7 +45,7 @@ export interface NanoConstructorOptions {
   debug?: boolean
 }
 
-class Nano {
+export class Nano {
   rpc = createAPI<API>(null)
   debug: boolean
 
@@ -535,7 +535,3 @@ class Nano {
     }
   }
 }
-
-// Support ES6 default import and CommonJS for node
-export default Nano
-module.exports = Nano

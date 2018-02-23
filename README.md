@@ -29,15 +29,22 @@ Note: All "amount" parameters must be passed in as strings. ex: `"0.01"` is equi
 ### Nanode Node API
 
 ```typescript
-import Nano from 'nanode'
+import { Nano } from 'nanode'
 const nano = new Nano({apiKey: process.env.NANODE_API_KEY})
 ```
 
 ### Your own Nano RPC server
 
 ```typescript
-import Nano from 'nanode'
+import { Nano } from 'nanode'
 const nano = new Nano({url: 'http://localhost:7076'})
+```
+
+### With Node.js/CommonJS Modules
+
+```javascript
+const { Nano } = require('nanode')
+const nano = new Nano(...)
 ```
 
 ## Working with accounts
