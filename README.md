@@ -111,7 +111,8 @@ Used for generating accounts and extrapolating public keys/addresses from privat
 Account methods take a single account string or in some cases, an array of accounts.
 
 * `nano.accounts.get(publicKey: string)`
-* `nano.accounts.balance(account: string)`
+* `nano.accounts.rawBalance(account: string)`
+* `nano.accounts.nanoBalance(account: string)`
 * `nano.accounts.balances(accounts: string[])`
 * `nano.accounts.blockCount(account: string)`
 * `nano.accounts.frontiers(accounts: string[])`

@@ -45,7 +45,7 @@ export interface NanoConstructorOptions {
   debug?: boolean
 }
 
-export default class Nano {
+class Nano {
   rpc = createAPI<API>(null)
   debug: boolean
 
@@ -535,3 +535,7 @@ export default class Nano {
     }
   }
 }
+
+// Support ES6 default import and CommonJS for node
+export default Nano
+module.exports = Nano
