@@ -25,11 +25,10 @@ export function createAxiosClient(
   apiKey: string,
   baseURL = 'https://api.nanode.co/'
 ): RPCClient {
+  const headers = apiKey ? { Authorization: apiKey } : {}
   const rpc = axios.create({
     baseURL,
-    headers: {
-      Authorization: apiKey
-    }
+    headers
   })
 
   return async function(params: any): Promise<any> {
