@@ -25,7 +25,7 @@ export function createAxiosClient(
   apiKey: string,
   baseURL = 'https://api.nanode.co/'
 ): RPCClient {
-  const headers = apiKey ? { Authorization: apiKey } : {}
+  const headers = apiKey ? {Authorization: apiKey} : {}
   const rpc = axios.create({
     baseURL,
     headers
@@ -164,7 +164,6 @@ class Nano {
   //Top-level call: send block
   async send(privateKey: string, amount: string | number, toAddress: string) {
     const {_log} = this
-
     if (!privateKey) {
       throw new Error('Must pass private_key argument')
     }

@@ -1,6 +1,9 @@
 require('dotenv').config()
 
-import Nano, {NanodeRepresentative} from '../index'
+// import {NanodeRepresentative} from '../index'
+
+const Nano = require('../index')
+const NanodeRepresentative = require('../index').NanodeRepresentative
 
 const nano = new Nano({
   apiKey: process.env.API_KEY,
@@ -17,7 +20,7 @@ async function openNewAccount() {
   await nano.account(privateKey).open()
 }
 
-async function sendFunds(privateKey: string) {
+async function sendFunds(privateKey) {
   await nano
     .account(privateKey)
     .send(
@@ -26,11 +29,11 @@ async function sendFunds(privateKey: string) {
     )
 }
 
-async function receiveFunds(privateKey: string) {
+async function receiveFunds(privateKey) {
   await nano.account(privateKey).receive()
 }
 
-async function checkBalance(address: string) {
+async function checkBalance(address) {
   return nano.accounts.nanoBalance(address)
 }
 

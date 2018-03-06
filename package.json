@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "debug": "ts-node --inspect-brk=9229 --debug examples/accounts.ts",
+    "debug": "ts-node --inspect-brk=9229 --debug examples/send.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepublish": "tsc && copyfiles util/*.js dist"
   },
