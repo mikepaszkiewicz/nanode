@@ -514,10 +514,10 @@ export class Nano {
     return this.rpc('representatives').then(res => res.representatives)
   }
 
-  deterministicKey(seed: string, index?: number) {
+  deterministicKey(seed: string, index?: string | number) {
     return this.rpc('deterministic_key', {
       seed,
-      index: '0'
+      index
     })
   }
 
