@@ -24,8 +24,6 @@ This library works natively with the [Nanode Node API](https://www.nanode.co/nod
 
 This library is built with TypeScript, and I highly reccommend you take advantage of your code editor's Intellisense features.
 
-Note: All "amount" parameters must be passed in as strings. ex: `"0.01"` is equivalent to 0.01 Nano.
-
 ### Nanode Node API
 
 ```typescript
