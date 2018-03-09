@@ -45,7 +45,7 @@ export interface NanoConstructorOptions {
   debug?: boolean
 }
 
-class Nano {
+export class Nano {
   rpc = createAPI<API>(null)
   debug: boolean
 
@@ -183,7 +183,7 @@ class Nano {
     })
 
     const result = await this.blocks.publish(block.block)
-    _log(`Sent ${amountRaw} NANO to ${toAddress}!`)
+    _log(`Sent ${amountRaw} raw to ${toAddress}!`)
     return result.hash
   }
 
@@ -535,7 +535,3 @@ class Nano {
     }
   }
 }
-
-// Support ES6 default import and CommonJS for node
-export default Nano
-module.exports = Nano
