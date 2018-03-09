@@ -34,4 +34,8 @@ async function checkBalance(address: string) {
   return nano.accounts.nanoBalance(address)
 }
 
-checkBalance(NanodeRepresentative).then(console.log)
+async function run() {
+  console.log(await checkBalance(NanodeRepresentative))
+}
+
+run()
