@@ -232,7 +232,7 @@ export type API = {
   deterministic_key: {
     body: {
       seed: string
-      index: string
+      index: string | number
     }
     response: {
       private: string

@@ -1,9 +1,6 @@
 require('dotenv').config()
 
-// import {NanodeRepresentative} from '../index'
-
-const Nano = require('../index')
-const NanodeRepresentative = require('../index').NanodeRepresentative
+const {Nano, NanodeRepresentative} = require('../dist/index')
 
 const nano = new Nano({
   apiKey: process.env.API_KEY,
@@ -37,4 +34,8 @@ async function checkBalance(address) {
   return nano.accounts.nanoBalance(address)
 }
 
-checkBalance(NanodeRepresentative).then(console.log)
+async function run() {
+  console.log(await checkBalance(NanodeRepresentative))
+}
+
+run()

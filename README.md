@@ -8,9 +8,9 @@ but the documentation and guides to working with it currently leave a lot to be 
 **This library is designed to get anyone, even a total beginner, up and running building services on NANO in just a few minutes.** At it's core,
 this package is a wrapper around the official [RPC protocol](https://github.com/nanocurrency/raiblocks/wiki/RPC-protocol) that does a few things:
 
-1. abstracts away some of the idiosyncracies and quirks with the RPC API,
-2. exposes some easy top-level account methods like `send()` and `recieve()` that do everything automatically so you don't have to know about Proof of Work, creating, signing, publishing, etc
-3. allows you to specify amounts in Nano without dealing with "raw" 128-bit integers
+1.  abstracts away some of the idiosyncracies and quirks with the RPC API,
+2.  exposes some easy top-level account methods like `send()` and `recieve()` that do everything automatically so you don't have to know about Proof of Work, creating, signing, publishing, etc
+3.  allows you to specify amounts in Nano without dealing with "raw" 128-bit integers
 
 This library works natively with the [Nanode Node API](https://www.nanode.co/node-api) as well as the [official Nano node software](https://github.com/nanocurrency/raiblocks), so there's no vendor lock-in.
 
@@ -27,16 +27,20 @@ This library is built with TypeScript, and I highly reccommend you take advantag
 ### Nanode Node API
 
 ```typescript
-import Nano from 'nanode'
+const {Nano} = require('nanode')
 const nano = new Nano({apiKey: process.env.NANODE_API_KEY})
 ```
 
 ### Your own Nano RPC server
 
 ```typescript
-import Nano from 'nanode'
+const {Nano} = require('nanode')
 const nano = new Nano({url: 'http://localhost:7076'})
 ```
+
+### Debug mode
+
+To enable some helpful logs, pass `debug: true` as a paramater in the constructor object.
 
 ## Working with accounts
 
@@ -164,7 +168,7 @@ Allows you to generate and validate Proof of Work for a given block hash.
 
 * `nano.available()`
 * `nano.representatives()`
-* `nano.deterministicKey(seed: string, index?: number)`
+* `nano.deterministicKey(seed: string, index?: string | number)`
 * `nano.minimumReceive.get()`
 * `nano.minimumReceive.set(nanoAmount: string | number)`
 

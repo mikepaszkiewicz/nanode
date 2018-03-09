@@ -29,24 +29,18 @@ const Converter = {
     // Step 2: to output
     switch (output_unit) {
       case 'raw':
-        value = value
-        break
+        return value.toFixed(0)
       case 'NANO':
       case 'XRB':
       case 'mrai':
-        value = value.shiftedBy(-30)
-        break
+        return value.shiftedBy(-30).toFixed(15)
       case 'krai':
-        value = value.shiftedBy(-27)
-        break
+        return value.shiftedBy(-27).toFixed(12)
       case 'rai':
-        value = value.shiftedBy(-24)
-        break
+        return value.shiftedBy(-24).toFixed(9)
       default:
         throw new Error(`Unknown output unit ${output_unit}`)
     }
-
-    return value.toFixed(6)
   },
   minus(base: string, minus: string) {
     new BigNumber(base).minus(new BigNumber(minus)).toFixed(0)
