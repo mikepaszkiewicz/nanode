@@ -1,7 +1,8 @@
 {
   "name": "nanode",
-  "version": "2.2.0",
-  "description": "Dead simple, promise-based client for interacting and building services on top of the NANO network.",
+  "version": "2.2.1",
+  "description":
+    "Dead simple, promise-based client for interacting and building services on top of the NANO network.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
