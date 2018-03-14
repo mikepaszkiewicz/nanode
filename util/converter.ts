@@ -33,11 +33,11 @@ const Converter = {
       case 'NANO':
       case 'XRB':
       case 'mrai':
-        return value.shiftedBy(-30).toFixed(15)
+        return value.shiftedBy(-30).toFixed(15, 1)
       case 'krai':
-        return value.shiftedBy(-27).toFixed(12)
+        return value.shiftedBy(-27).toFixed(12, 1)
       case 'rai':
-        return value.shiftedBy(-24).toFixed(9)
+        return value.shiftedBy(-24).toFixed(9, 1)
       default:
         throw new Error(`Unknown output unit ${output_unit}`)
     }
