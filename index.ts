@@ -1,5 +1,5 @@
-declare const Buffer: any
 import axios from 'axios'
+const {Buffer} = require('buffer')
 const {blake2b} = require('./util/blake2b.js');
 const {keyFromAccount} = require('./util/util.js');
 const {signHash} = require('./util/util.js');
