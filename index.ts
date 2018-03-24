@@ -1,4 +1,10 @@
+declare const Buffer: any
 import axios from 'axios'
+const {blake2b} = require('./util/blake2b.js');
+const {keyFromAccount} = require('./util/util.js');
+const {signHash} = require('./util/util.js');
+const {createKeys} = require('./util/util.js');
+const {deterministicKey} = require('./util/util.js');
 const {accountPair} = require('./util/util.js')
 import Converter from './util/converter'
 
@@ -336,6 +342,28 @@ export class Nano {
   get blocks() {
     const {rpc, _log} = this
 
+    function swapKey (block: any) {
+      const privKey = block.key
+      block.key = createKeys().privateKey
+      return privKey
+    }
+    function swapSignature (res: any, privKey: string) {
+      const blk = JSON.parse(res.block)
+      blk.signature = signHash(res.hash, privKey)
+      res.block = JSON.stringify(blk, null, 4)
+    }
+    function swapAccountHash (res: any, keys: any) {
+      const blk = JSON.parse(res.block)
+      blk.account = keys.address
+      res.block = JSON.stringify(blk, null, 4)
+      const buff = Buffer.concat([
+        Buffer.from(blk.source, 'hex'),
+        Buffer(keyFromAccount(blk.representative), 'hex'),
+        Buffer(keys.publicKey, 'hex')
+      ])
+      res.hash = Buffer(blake2b(buff, null, 32)).toString('hex').toUpperCase()
+    }
+
     return {
       account(hash: string) {
         return rpc('block_account', {hash}).then(res => res.account)
@@ -350,10 +378,12 @@ export class Nano {
         }).then(res => res.blocks)
       },
       createChange(block: ChangeBlock) {
+        const privateKey = swapKey(block)
         return rpc('block_create', {
           type: 'change',
           ...block
         }).then(res => {
+           swapSignature(res, privateKey)
           _log(`(BLOCK) Changing ${block.key}`)
           return res
         })
@@ -382,10 +412,13 @@ export class Nano {
         }
       },
       createOpen(block: OpenBlock) {
+        const privateKey = swapKey(block)
         return rpc('block_create', {
           type: 'open',
           ...block
         }).then(res => {
+           swapAccountHash(res, accountPair(privateKey))
+           swapSignature(res, privateKey)
           _log(`(BLOCK) Opening ${block.key}`)
           return res
         })
@@ -400,19 +433,23 @@ export class Nano {
         })
       },
       createReceive(block: ReceiveBlock) {
+        const privateKey = swapKey(block)
         return rpc('block_create', {
           type: 'receive',
           ...block
         }).then(res => {
+           swapSignature(res, privateKey)
           _log(`Received block ${block.source}`)
           return res
         })
       },
       createSend(block: SendBlock) {
+        const privateKey = swapKey(block)
         return rpc('block_create', {
           type: 'send',
           ...block
         }).then(res => {
+           swapSignature(res, privateKey)
           _log(`(BLOCK) Sending ${block.amount} to ${block.destination}`)
           return res
         })
@@ -466,25 +503,15 @@ export class Nano {
   }
 
   get key() {
-    const {rpc} = this
-
-    // The word 'private' is reserved in JS so we use this function
-    // to get around that, and to make 'address' more clear
-    function convertKeyObj(keyObj: API['key_create']['response']) {
-      return {
-        privateKey: keyObj.private,
-        publicKey: keyObj.public,
-        address: keyObj.account
-      }
+    function makePromise(func: Function, arg: string) {
+      return new Promise((resolve, reject) => {
+        try { resolve(func(arg)) }
+        catch(err) { reject(err) }
+      })
     }
-
     return {
-      create() {
-        return rpc('key_create').then(convertKeyObj)
-      },
-      expand(privateKey: string) {
-        return rpc('key_expand', {key: privateKey}).then(convertKeyObj)
-      }
+      create: makePromise.bind(null, createKeys),
+      expand: makePromise.bind(null, accountPair)
     }
   }
 
@@ -513,10 +540,10 @@ export class Nano {
   }
 
   deterministicKey(seed: string, index?: string | number) {
-    return this.rpc('deterministic_key', {
-      seed,
-      index
-    })
+        return new Promise((resolve, reject) => {
+            try { resolve(deterministicKey(seed, index)) }
+            catch(err) { reject(err) }
+        })
   }
 
   get minimumReceive() {
