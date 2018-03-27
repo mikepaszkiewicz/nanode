@@ -356,11 +356,7 @@ export class Nano {
       const blk = JSON.parse(res.block)
       blk.account = keys.address
       res.block = JSON.stringify(blk, null, 4)
-      const buff = Buffer.concat([
-        Buffer.from(blk.source, 'hex'),
-        Buffer(keyFromAccount(blk.representative), 'hex'),
-        Buffer(keys.publicKey, 'hex')
-      ])
+      var buff = Buffer.from(blk.source + keyFromAccount(blk.representative) + keys.publicKey, 'hex')
       res.hash = Buffer(blake2b(buff, null, 32)).toString('hex').toUpperCase()
     }
 
