@@ -1,13 +1,15 @@
 {
   "name": "nanode",
   "version": "2.3.0",
-  "description": "Dead simple, promise-based client for interacting and building services on top of the NANO network.",
+  "description":
+    "Dead simple, promise-based client for interacting and building services on top of the NANO network.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "debug": "ts-node --inspect-brk=9229 --debug examples/send.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublish": "tsc && babel util --out-dir dist/util"
+    "prepublish":
+      "tsc && babel util --out-dir dist/util && copyfiles api.d.ts dist"
   },
   "repository": {
     "type": "git",
