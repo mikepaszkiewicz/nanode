@@ -2,16 +2,21 @@ import axios from 'axios'
 const {accountPair} = require('./util/util.js')
 import Converter from './util/converter'
 
-import {API, SendBlock, ReceiveBlock, OpenBlock, ChangeBlock} from './api'
+import {
+  API,
+  APIBase,
+  SendBlock,
+  ReceiveBlock,
+  OpenBlock,
+  ChangeBlock
+} from './api'
 
 export const NanodeRepresentative =
   'xrb_1nanode8ngaakzbck8smq6ru9bethqwyehomf79sae1k7xd47dkidjqzffeg'
 export const BounceAddress = ''
 
 export type RPCClient = (params: any) => Promise<any>
-function createAPI<API extends {[action: string]: any} = any>(
-  rpcClient: RPCClient
-) {
+function createAPI<API extends APIBase = any>(rpcClient: RPCClient) {
   return async function callRPC<Action extends keyof API>(
     action: Action,
     body?: API[Action]['body']

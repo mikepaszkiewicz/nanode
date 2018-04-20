@@ -1,4 +1,11 @@
-export type API = {
+export interface APIBase {
+  [method: string]: {
+    body?: any
+    response?: any
+  }
+}
+
+export interface API extends APIBase {
   account_balance: {
     body: {
       account: string
