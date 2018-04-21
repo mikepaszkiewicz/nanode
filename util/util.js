@@ -178,9 +178,8 @@ exports.deterministicKey = function(seed, accountIndex) {
 
   const indexBuffer = Buffer.alloc(4)
   indexBuffer.writeInt32BE(accountIndex)
-
   if (typeof seed === 'string' && /^[A-Fa-f0-9]{64}$/.test(seed))
-    seed = Buffer.from(seed, hex)
+    seed = Buffer.from(seed, 'hex')
   else if (!(seed instanceof Buffer)) throw new Error('invalid_seed')
 
   blake2bUpdate(context, seed)
@@ -191,8 +190,8 @@ exports.deterministicKey = function(seed, accountIndex) {
     nacl.sign.keyPair.fromSecretKey(privKey).publicKey
   ).toString('hex')
   return {
-    privateKey: privKey.toString('hex'),
-    publicKey: pubKeyHex,
+    privateKey: privKey.toString('hex').toUpperCase(),
+    publicKey: pubKeyHex.toUpperCase(),
     address: exports.accountFromKey(pubKeyHex)
   }
 }
@@ -203,8 +202,23 @@ exports.accountPair = function(privKeyString) {
     nacl.sign.keyPair.fromSecretKey(privKey).publicKey
   ).toString('hex')
   return {
-    privateKey: privKey.toString('hex'),
+    privateKey: privKeyString.toUpperCase(),
+    publicKey: pubKeyHex.toUpperCase(),
+    address: exports.accountFromKey(pubKeyHex)
+  }
+}
+
+exports.createKeys = function() {
+  const keyPair = nacl.sign.keyPair()
+  const privKeyHex = Buffer.from(keyPair.secretKey).toString('hex').toUpperCase()
+  const pubKeyHex = Buffer.from(keyPair.publicKey).toString('hex').toUpperCase()
+  return {
+    privateKey: privKeyHex,
     publicKey: pubKeyHex,
     address: exports.accountFromKey(pubKeyHex)
   }
+}
+
+exports.signHash = function(hashString, privKeyString) {
+  return Buffer.from(nacl.sign.detached(Buffer.from(hashString, 'hex'), Buffer.from(privKeyString, 'hex'))).toString('hex').toUpperCase()
 }
