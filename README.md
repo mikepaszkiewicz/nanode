@@ -40,7 +40,7 @@ const nano = new Nano({url: 'http://localhost:7076'})
 
 ### Debug mode
 
-To enable some helpful logs, pass `debug: true` as a paramater in the constructor object.
+To enable some helpful logs, pass `debug: true` as a parameter in the constructor object.
 
 ## Working with accounts
 
